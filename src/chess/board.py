@@ -1,5 +1,7 @@
 from . import pieces as p
 from .exceptions import FENError
+from .move import Move
+from .util import square_to_index
 
 
 class Board:
@@ -57,3 +59,21 @@ class Board:
             board.append(p.Border())
 
         return board
+
+    def _get_piece_by_index(self, index: int) -> p.Piece:
+        return self._board[index]
+
+    def _get_piece_by_square(self, square: str) -> p.Piece:
+        index = square_to_index(square)
+        return self._board[index]
+
+    def _get_pseudolegal_moves_by_index(self, index: int) -> set[Move]:
+        piece = self._get_piece_by_index(index)
+        # TODO: change 0 to en_passant_idx when implement en_passant
+        return piece.get_pseudolegal_moves(self._board, 0, index)
+
+    def _get_pseudolegal_moves_by_square(self, square: str) -> set[Move]:
+        index = square_to_index(square)
+        piece = self._get_piece_by_index(index)
+        # TODO: change 0 to en_passant_idx when implement en_passant
+        return piece.get_pseudolegal_moves(self._board, 0, index)
