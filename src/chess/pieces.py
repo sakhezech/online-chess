@@ -24,7 +24,10 @@ class SlidingPiece(Piece):
     offsets: list[int]
 
     def get_pseudolegal_moves(
-        self, board: list[Piece], en_passant_idx: int, index: int | None = None
+        self,
+        board: list[Piece],
+        en_passant_idx: int,
+        index: int | None = None,
     ) -> list[Move]:
         moves = []
         if index is None:
@@ -52,7 +55,10 @@ class NonSlidingPiece(Piece):
     offsets: list[int]
 
     def get_pseudolegal_moves(
-        self, board: list[Piece], en_passant_idx: int, index: int | None = None
+        self,
+        board: list[Piece],
+        en_passant_idx: int,
+        index: int | None = None,
     ) -> list[Move]:
         moves = []
         if index is None:
@@ -73,7 +79,10 @@ class Pawn(Piece):
     char = 'p'
 
     def get_pseudolegal_moves(
-        self, board: list[Piece], en_passant_idx: int, index: int | None = None
+        self,
+        board: list[Piece],
+        en_passant_idx: int,
+        index: int | None = None,
     ) -> list[Move]:
         # TODO: pawn movement
         return []
@@ -104,7 +113,10 @@ class King(NonSlidingPiece):
     offsets = [-11, -10, -9, -1, 1, 9, 10, 11]
 
     def get_pseudolegal_moves(
-        self, board: list[Piece], en_passant_idx: int, index: int | None = None
+        self,
+        board: list[Piece],
+        en_passant_idx: int,
+        index: int | None = None,
     ) -> list[Move]:
         moves = super().get_pseudolegal_moves(board, en_passant_idx, index)
         # TODO: castling
