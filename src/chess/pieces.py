@@ -16,7 +16,7 @@ class Piece:
         board: list['Piece'],
         en_passant_idx: int,
         index: int | None = None,
-    ) -> list[Move]:
+    ) -> set[Move]:
         raise NotImplementedError
 
 
@@ -28,8 +28,8 @@ class SlidingPiece(Piece):
         board: list[Piece],
         en_passant_idx: int,
         index: int | None = None,
-    ) -> list[Move]:
-        moves = []
+    ) -> set[Move]:
+        moves = set()
         if index is None:
             index = board.index(self)
         for offset in self.offsets:
@@ -40,11 +40,11 @@ class SlidingPiece(Piece):
                 ptype = type(piece)
 
                 if ptype is Empty:
-                    moves.append(Move(index, offsetted_index))
+                    moves.add(Move(index, offsetted_index))
                 elif ptype is Border:
                     break
                 elif piece.color != self.color:
-                    moves.append(Move(index, offsetted_index))
+                    moves.add(Move(index, offsetted_index))
                     break
                 else:  # piece.color == self.color
                     break
@@ -59,8 +59,8 @@ class NonSlidingPiece(Piece):
         board: list[Piece],
         en_passant_idx: int,
         index: int | None = None,
-    ) -> list[Move]:
-        moves = []
+    ) -> set[Move]:
+        moves = set()
         if index is None:
             index = board.index(self)
         for offset in self.offsets:
@@ -71,7 +71,7 @@ class NonSlidingPiece(Piece):
             if ptype is not Border and (
                 ptype is Empty or piece.color != self.color
             ):
-                moves.append(Move(index, offsetted_index))
+                moves.add(Move(index, offsetted_index))
         return moves
 
 
@@ -83,9 +83,9 @@ class Pawn(Piece):
         board: list[Piece],
         en_passant_idx: int,
         index: int | None = None,
-    ) -> list[Move]:
+    ) -> set[Move]:
         # TODO: pawn movement
-        return []
+        return set()
 
 
 class Knight(NonSlidingPiece):
@@ -117,7 +117,7 @@ class King(NonSlidingPiece):
         board: list[Piece],
         en_passant_idx: int,
         index: int | None = None,
-    ) -> list[Move]:
+    ) -> set[Move]:
         moves = super().get_pseudolegal_moves(board, en_passant_idx, index)
         # TODO: castling
         return moves
