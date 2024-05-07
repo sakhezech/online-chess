@@ -19,9 +19,8 @@ class Board:
         self._board = self._parse_board(board_fen)
 
     def __repr__(self) -> str:
-        reversed_board = list(reversed(self._board))
         board_8x8 = [
-            reversed_board[1 + row_num * 10 : 9 + row_num * 10]
+            self._board[1 + row_num * 10 : 9 + row_num * 10]
             for row_num in range(2, 10)
         ]
         return '\n'.join(
@@ -39,7 +38,7 @@ class Board:
         for _ in range(21):
             board.append(p.Border())
 
-        for char in reversed(fen_board):
+        for char in fen_board:
             if char.isdigit():
                 for _ in range(int(char)):
                     board.append(p.Empty())
