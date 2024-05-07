@@ -6,7 +6,7 @@ class Board:
     _CHAR_TO_PIECE = {
         p.Pawn.char: p.Pawn,
         p.Knight.char: p.Knight,
-        p.Bishop.char: p.Pawn,
+        p.Bishop.char: p.Bishop,
         p.Rook.char: p.Rook,
         p.Queen.char: p.Queen,
         p.King.char: p.King,
