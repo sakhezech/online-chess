@@ -32,6 +32,39 @@ test_data: dict[str, dict[str, list[str]]] = {
         'a1': ['a2', 'a3', 'a4', 'a5', 'b2', 'c3', 'b1', 'c1', 'd1', 'e1'],
         'g7': ['f8', 'g8', 'h8', 'h7', 'f6', 'g6', 'h6'],
     },
+    # KING
+    'rnb1kbnr/pppppppp/8/8/8/3PP3/PPPq1PPP/R3K1NR w KQkq - 0 1': {
+        'e1': ['c1', 'd1', 'd2', 'e2', 'f1'],
+    },
+    'rnb1kbnr/pppppppp/8/8/8/3PPP2/PPP3PP/R3K2R w Kkq - 0 1': {
+        'e1': ['d1', 'd2', 'e2', 'f1', 'f2', 'g1'],
+    },
+    'r3k2r/pppp1ppp/8/4p3/8/8/PPPPPPPP/R3K2R b q - 0 1': {
+        'e8': ['f8', 'e7', 'd8', 'c8']
+    },
+    # PAWN
+    '5P2/8/8/8/2PpPp2/7p/Pq1P3P/2P5 b - e3 0 1': {
+        'a2': ['a3', 'a4'],
+        'c1': ['c2', 'b2'],
+        'd2': ['d3'],
+        'e4': ['e5'],
+        'd4': ['d3', 'e3'],
+        'f8': [],
+        'h2': [],
+        'h3': [],
+    },
+    '8/p2p1ppp/1p2p1P1/PPp5/8/8/8/8 w KQkq c6 0 1': {
+        'a7': ['a6'],
+        'b6': ['a5'],
+        'c5': ['c4'],
+        'd7': ['d6', 'd5'],
+        'e6': ['e5'],
+        'f7': ['f6', 'f5', 'g6'],
+        'g7': [],
+        'h7': ['h6', 'h5', 'g6'],
+        'a5': ['a6', 'b6'],
+        'b5': ['c6'],
+    },
 }
 
 TestData = tuple[str, str, list[str]]
