@@ -43,7 +43,7 @@ test_data: dict[str, dict[str, list[str]]] = {
         'e8': ['f8', 'e7', 'd8', 'c8']
     },
     # PAWN
-    '5P2/8/8/8/2PpPp2/7p/Pq1P3P/2P5 b - e3 0 1': {
+    '5P2/8/8/8/2PpPp2/7p/Pq1PP2P/2P5 b - e3 0 1': {
         'a2': ['a3', 'a4'],
         'c1': ['c2', 'b2'],
         'd2': ['d3'],
