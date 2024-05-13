@@ -14,7 +14,8 @@ class Piece:
     def get_pseudolegal_moves(
         self,
         board: list['Piece'],
-        en_passant_idx: int,
+        en_passant: int,
+        castle_rights: dict[bool, dict[str, bool]],
         index: int | None = None,
     ) -> set[Move]:
         raise NotImplementedError
@@ -26,7 +27,8 @@ class SlidingPiece(Piece):
     def get_pseudolegal_moves(
         self,
         board: list[Piece],
-        en_passant_idx: int,
+        en_passant: int,
+        castle_rights: dict[bool, dict[str, bool]],
         index: int | None = None,
     ) -> set[Move]:
         moves = set()
@@ -57,7 +59,8 @@ class NonSlidingPiece(Piece):
     def get_pseudolegal_moves(
         self,
         board: list[Piece],
-        en_passant_idx: int,
+        en_passant: int,
+        castle_rights: dict[bool, dict[str, bool]],
         index: int | None = None,
     ) -> set[Move]:
         moves = set()
@@ -81,7 +84,8 @@ class Pawn(Piece):
     def get_pseudolegal_moves(
         self,
         board: list[Piece],
-        en_passant_idx: int,
+        en_passant: int,
+        castle_rights: dict[bool, dict[str, bool]],
         index: int | None = None,
     ) -> set[Move]:
         # TODO: pawn movement
@@ -115,11 +119,28 @@ class King(NonSlidingPiece):
     def get_pseudolegal_moves(
         self,
         board: list[Piece],
-        en_passant_idx: int,
+        en_passant: int,
+        castle_rights: dict[bool, dict[str, bool]],
         index: int | None = None,
     ) -> set[Move]:
-        moves = super().get_pseudolegal_moves(board, en_passant_idx, index)
-        # TODO: castling
+        moves = super().get_pseudolegal_moves(
+            board, en_passant, castle_rights, index
+        )
+        if index is None:
+            index = board.index(self)
+
+        b = 90 if self.color else 20
+        king_index = b + 5
+        queenside = {4, 3, 2}
+        kingside = {6, 7}
+        cr = castle_rights[self.color]
+
+        if index != king_index:
+            return moves
+        if cr['qs'] and all(type(board[i + b]) is Empty for i in queenside):
+            moves.add(Move(index, b + 3))
+        if cr['ks'] and all(type(board[i + b]) is Empty for i in kingside):
+            moves.add(Move(index, b + 7))
         return moves
 
 

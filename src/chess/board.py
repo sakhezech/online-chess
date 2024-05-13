@@ -134,9 +134,13 @@ class Board:
 
     def _get_pseudolegal_moves_by_index(self, index: int) -> set[Move]:
         piece = self._get_piece_by_index(index)
-        return piece.get_pseudolegal_moves(self._board, self.en_passant, index)
+        return piece.get_pseudolegal_moves(
+            self._board, self.en_passant, self.castle_rights, index
+        )
 
     def _get_pseudolegal_moves_by_square(self, square: str) -> set[Move]:
         index = square_to_index(square)
         piece = self._get_piece_by_index(index)
-        return piece.get_pseudolegal_moves(self._board, self.en_passant, index)
+        return piece.get_pseudolegal_moves(
+            self._board, self.en_passant, self.castle_rights, index
+        )
