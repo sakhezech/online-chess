@@ -88,8 +88,39 @@ class Pawn(Piece):
         castle_rights: dict[bool, dict[str, bool]],
         index: int | None = None,
     ) -> set[Move]:
-        # TODO: pawn movement
-        return set()
+        moves = set()
+        if index is None:
+            index = board.index(self)
+        b = 80 if self.color else 30
+        offset = -10 if self.color else 10
+        attack_offsets = {offset + 1, offset - 1}
+
+        offsetted_index = index + offset
+        piece = board[offsetted_index]
+        ptype = type(piece)
+        if ptype is Empty:
+            moves.add(Move(index, offsetted_index))
+            offsetted_index = offsetted_index + offset
+            piece = board[offsetted_index]
+            ptype = type(piece)
+            if b <= index <= b + 10 and ptype is Empty:
+                moves.add(Move(index, offsetted_index))
+
+        for attack_offset in attack_offsets:
+            offsetted_index = index + attack_offset
+            piece = board[offsetted_index]
+            ptype = type(piece)
+            enp = board[en_passant - offset]
+            if (
+                offsetted_index == en_passant
+                and type(enp) is Pawn
+                and enp.color != self.color
+                or piece.color != self.color
+                and ptype not in {Empty, Border}
+            ):
+                moves.add(Move(index, offsetted_index))
+
+        return moves
 
 
 class Knight(NonSlidingPiece):
