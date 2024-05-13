@@ -17,8 +17,21 @@ class Board:
     def __init__(self, fen: str | None = None) -> None:
         if fen is None:
             fen = 'rnbqkbnr/pppppppp/8/8/8/8/PPPPPPPP/RNBQKBNR w KQkq - 0 1'
-        board_fen = fen.split()[0]
-        self._board = self._parse_board(board_fen)
+        (
+            board,
+            active_color,
+            castle_rights,
+            en_passant,
+            halfmoves,
+            fullmoves,
+        ) = fen.split()
+
+        self._board = self._parse_board(board)
+        self.active_color = self._parse_active_color(active_color)
+        self.castle_rights = self._parse_castle_rights(castle_rights)
+        self.en_passant = self._parse_en_passant(en_passant)
+        self.fullmoves = self._parse_fullmoves(fullmoves)
+        self.halfmoves = self._parse_halfmoves(halfmoves)
 
     def __repr__(self) -> str:
         board_8x8 = [
@@ -28,6 +41,58 @@ class Board:
         return '\n'.join(
             ' '.join(piece.icon for piece in row) for row in board_8x8
         )
+
+    def _parse_active_color(self, active_color: str) -> bool:
+        if active_color == 'w':
+            return True
+        elif active_color == 'b':
+            return False
+        raise FENError(f"active color is not 'w' or 'b': {active_color}")
+
+    def _parse_en_passant(self, en_passant: str) -> int:
+        if en_passant == '-':
+            return 0
+        return square_to_index(en_passant)
+
+    def _parse_castle_rights(self, castle_rights: str):
+        cr = {
+            True: {
+                'ks': False,
+                'qs': False,
+            },
+            False: {
+                'ks': False,
+                'qs': False,
+            },
+        }
+        if castle_rights == '-':
+            return cr
+        valid_chars = {'k', 'q', 'K', 'Q'}
+        for char in castle_rights:
+            if char not in valid_chars:
+                raise FENError(f'invalid character in castle rights: {char}')
+            cr[char.isupper()][f'{char.lower()}s'] = True
+        return cr
+
+    def _parse_fullmoves(self, fullmoves: str) -> int:
+        try:
+            fm = int(fullmoves)
+        except ValueError:
+            raise FENError(f'fullmove counter is not a number: {fullmoves}')
+        if fm < 1:
+            raise FENError(f'fullmove counter is less than 1: {fullmoves}')
+        return fm
+
+    def _parse_halfmoves(self, halfmoves: str) -> int:
+        try:
+            hm = int(halfmoves)
+        except ValueError:
+            raise FENError(f'halfmove clock is not a number: {halfmoves}')
+        if not 0 <= hm <= 100:
+            raise FENError(
+                f'halfmove clock is below 0 or above 100: {halfmoves}'
+            )
+        return hm
 
     def _parse_board(self, fen_board: str) -> list[p.Piece]:
         board: list[p.Piece] = []
