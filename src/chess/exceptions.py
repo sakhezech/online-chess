@@ -4,3 +4,7 @@ class ChessError(Exception):
 
 class FENError(ChessError):
     pass
+
+
+class NotAPieceError(ChessError):
+    pass

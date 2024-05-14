@@ -1,24 +1,30 @@
 from .move import Move
 
 
-class Piece:
+class BoardEntity:
     char = ''
-
-    def __init__(self, color: bool = True) -> None:
-        self.color = color
 
     @property
     def icon(self) -> str:
-        return self.char.upper() if self.color else self.char
+        return self.char
+
+
+class Piece(BoardEntity):
+    def __init__(self, color: bool = True) -> None:
+        self.color = color
 
     def get_pseudolegal_moves(
         self,
-        board: list['Piece'],
+        board: list['Piece | Empty | Border'],
         en_passant: int,
         castle_rights: dict[bool, dict[str, bool]],
         index: int | None = None,
     ) -> set[Move]:
         raise NotImplementedError
+
+    @property
+    def icon(self) -> str:
+        return self.char.upper() if self.color else self.char
 
 
 class SlidingPiece(Piece):
@@ -26,7 +32,7 @@ class SlidingPiece(Piece):
 
     def get_pseudolegal_moves(
         self,
-        board: list[Piece],
+        board: list['Piece | Empty | Border'],
         en_passant: int,
         castle_rights: dict[bool, dict[str, bool]],
         index: int | None = None,
@@ -35,30 +41,29 @@ class SlidingPiece(Piece):
         if index is None:
             index = board.index(self)
         for offset in self.offsets:
-            offsetted_index = index
+            target_index = index
             while True:
-                offsetted_index += offset
-                piece = board[offsetted_index]
-                ptype = type(piece)
+                target_index += offset
+                piece = board[target_index]
 
-                if ptype is Empty:
-                    moves.add(Move(index, offsetted_index))
-                elif ptype is Border:
+                if isinstance(piece, Empty):
+                    moves.add(Move(index, target_index))
+                elif isinstance(piece, Border):
                     break
                 elif piece.color != self.color:
-                    moves.add(Move(index, offsetted_index))
+                    moves.add(Move(index, target_index))
                     break
                 else:  # piece.color == self.color
                     break
         return moves
 
 
-class NonSlidingPiece(Piece):
+class JumpingPiece(Piece):
     offsets: list[int]
 
     def get_pseudolegal_moves(
         self,
-        board: list[Piece],
+        board: list['Piece | Empty | Border'],
         en_passant: int,
         castle_rights: dict[bool, dict[str, bool]],
         index: int | None = None,
@@ -67,14 +72,14 @@ class NonSlidingPiece(Piece):
         if index is None:
             index = board.index(self)
         for offset in self.offsets:
-            offsetted_index = index + offset
-            piece = board[offsetted_index]
-            ptype = type(piece)
+            target_index = index + offset
+            piece = board[target_index]
 
-            if ptype is not Border and (
-                ptype is Empty or piece.color != self.color
-            ):
-                moves.add(Move(index, offsetted_index))
+            if isinstance(piece, Border):
+                continue
+            if isinstance(piece, Empty) or piece.color != self.color:
+                moves.add(Move(index, target_index))
+
         return moves
 
 
@@ -83,7 +88,7 @@ class Pawn(Piece):
 
     def get_pseudolegal_moves(
         self,
-        board: list[Piece],
+        board: list['Piece | Empty | Border'],
         en_passant: int,
         castle_rights: dict[bool, dict[str, bool]],
         index: int | None = None,
@@ -91,39 +96,38 @@ class Pawn(Piece):
         moves = set()
         if index is None:
             index = board.index(self)
-        b = 80 if self.color else 30
+        double_move_row = 80 if self.color else 30
         offset = -10 if self.color else 10
         attack_offsets = {offset + 1, offset - 1}
 
-        offsetted_index = index + offset
-        piece = board[offsetted_index]
-        ptype = type(piece)
-        if ptype is Empty:
-            moves.add(Move(index, offsetted_index))
-            offsetted_index = offsetted_index + offset
-            piece = board[offsetted_index]
-            ptype = type(piece)
-            if b <= index <= b + 10 and ptype is Empty:
-                moves.add(Move(index, offsetted_index))
+        target_index = index + offset
+        piece = board[target_index]
+        if isinstance(piece, Empty):
+            moves.add(Move(index, target_index))
+            target_index += offset
+            piece = board[target_index]
+            if double_move_row <= index <= double_move_row + 10 and isinstance(
+                piece, Empty
+            ):
+                moves.add(Move(index, target_index))
 
         for attack_offset in attack_offsets:
-            offsetted_index = index + attack_offset
-            piece = board[offsetted_index]
-            ptype = type(piece)
-            enp = board[en_passant - offset]
+            target_index = index + attack_offset
+            piece = board[target_index]
+            en_passant_piece = board[en_passant - offset]
             if (
-                offsetted_index == en_passant
-                and type(enp) is Pawn
-                and enp.color != self.color
-                or piece.color != self.color
-                and ptype not in {Empty, Border}
+                target_index == en_passant
+                and isinstance(en_passant_piece, Pawn)
+                and en_passant_piece.color != self.color
+                or isinstance(piece, Piece)
+                and piece.color != self.color
             ):
-                moves.add(Move(index, offsetted_index))
+                moves.add(Move(index, target_index))
 
         return moves
 
 
-class Knight(NonSlidingPiece):
+class Knight(JumpingPiece):
     char = 'n'
     offsets = [-21, -19, -12, -8, 8, 12, 19, 21]
 
@@ -143,13 +147,13 @@ class Queen(SlidingPiece):
     offsets = [-11, -10, -9, -1, 1, 9, 10, 11]
 
 
-class King(NonSlidingPiece):
+class King(JumpingPiece):
     char = 'k'
     offsets = [-11, -10, -9, -1, 1, 9, 10, 11]
 
     def get_pseudolegal_moves(
         self,
-        board: list[Piece],
+        board: list['Piece | Empty | Border'],
         en_passant: int,
         castle_rights: dict[bool, dict[str, bool]],
         index: int | None = None,
@@ -160,24 +164,29 @@ class King(NonSlidingPiece):
         if index is None:
             index = board.index(self)
 
-        b = 90 if self.color else 20
-        king_index = b + 5
+        king_row = 90 if self.color else 20
+        king_index = king_row + 5
         queenside = {4, 3, 2}
         kingside = {6, 7}
         cr = castle_rights[self.color]
 
         if index != king_index:
             return moves
-        if cr['qs'] and all(type(board[i + b]) is Empty for i in queenside):
-            moves.add(Move(index, b + 3))
-        if cr['ks'] and all(type(board[i + b]) is Empty for i in kingside):
-            moves.add(Move(index, b + 7))
+
+        if cr['qs'] and all(
+            isinstance(board[i + king_row], Empty) for i in queenside
+        ):
+            moves.add(Move(index, king_row + 3))
+        if cr['ks'] and all(
+            isinstance(board[i + king_row], Empty) for i in kingside
+        ):
+            moves.add(Move(index, king_row + 7))
         return moves
 
 
-class Empty(Piece):
+class Empty(BoardEntity):
     char = '.'
 
 
-class Border(Piece):
+class Border(BoardEntity):
     pass

@@ -1,7 +1,7 @@
 from . import pieces as p
-from .exceptions import FENError
+from .exceptions import FENError, NotAPieceError
 from .move import Move
-from .util import square_to_index
+from .util import index_to_square, square_to_index
 
 
 class Board:
@@ -94,8 +94,10 @@ class Board:
             )
         return hm
 
-    def _parse_board(self, fen_board: str) -> list[p.Piece]:
-        board: list[p.Piece] = []
+    def _parse_board(
+        self, fen_board: str
+    ) -> list[p.Piece | p.Empty | p.Border]:
+        board = []
 
         rows = len(fen_board.split('/'))
         if rows != 8:
@@ -125,22 +127,14 @@ class Board:
 
         return board
 
-    def _get_piece_by_index(self, index: int) -> p.Piece:
-        return self._board[index]
-
-    def _get_piece_by_square(self, square: str) -> p.Piece:
-        index = square_to_index(square)
-        return self._board[index]
-
     def _get_pseudolegal_moves_by_index(self, index: int) -> set[Move]:
-        piece = self._get_piece_by_index(index)
+        piece = self._board[index]
+        if not isinstance(piece, p.Piece):
+            raise NotAPieceError(f'not a piece: {index_to_square(index)}')
         return piece.get_pseudolegal_moves(
             self._board, self.en_passant, self.castle_rights, index
         )
 
     def _get_pseudolegal_moves_by_square(self, square: str) -> set[Move]:
         index = square_to_index(square)
-        piece = self._get_piece_by_index(index)
-        return piece.get_pseudolegal_moves(
-            self._board, self.en_passant, self.castle_rights, index
-        )
+        return self._get_pseudolegal_moves_by_index(index)
