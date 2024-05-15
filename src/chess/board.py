@@ -34,6 +34,21 @@ class Board:
         self.fullmoves = self._parse_fullmoves(fullmoves)
         self.halfmoves = self._parse_halfmoves(halfmoves)
 
+    def move(self, move: str) -> None:
+        move_ = Move.from_uci(move)
+        self._move(move_)
+
+    def _move(self, move: Move) -> None:
+        index = move.origin
+        piece = self._board[index]
+        if not isinstance(piece, p.Piece):
+            raise NotAPieceError(f'not a piece: {index_to_square(index)}')
+        self.en_passant, self.castle_rights = piece.make_move(
+            move,
+            self._board,
+            self.castle_rights,
+        )
+
     def __repr__(self) -> str:
         board_8x8 = [
             self._board[1 + row_num * 10 : 9 + row_num * 10]

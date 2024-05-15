@@ -31,6 +31,16 @@ class Piece(BoardEntity):
     ):
         raise NotImplementedError
 
+    def make_move(
+        self,
+        move: Move,
+        board: list['Piece | Empty | Border'],
+        castle_rights: CastleRights,
+    ) -> tuple[int, CastleRights]:
+        board[move.origin] = Empty()
+        board[move.dest] = self
+        return 0, castle_rights
+
     @property
     def icon(self) -> str:
         return self.char.upper() if self.color else self.char
@@ -173,6 +183,19 @@ class Pawn(Piece):
                 return True
         return False
 
+    def make_move(
+        self,
+        move: Move,
+        board: list['Piece | Empty | Border'],
+        castle_rights: CastleRights,
+    ) -> tuple[int, CastleRights]:
+        super().make_move(move, board, castle_rights)
+        if abs(move.origin - move.dest) == 20:
+            idx = (move.origin + move.dest) // 2
+        else:
+            idx = 0
+        return idx, castle_rights
+
 
 class Knight(JumpingPiece):
     char = 'n'
@@ -187,6 +210,24 @@ class Bishop(SlidingPiece):
 class Rook(SlidingPiece):
     char = 'r'
     offsets = [-10, -1, 1, 10]
+
+    def make_move(
+        self,
+        move: Move,
+        board: list['Piece | Empty | Border'],
+        castle_rights: CastleRights,
+    ) -> tuple[int, CastleRights]:
+        super().make_move(move, board, castle_rights)
+        king_row = 90 if self.color else 20
+        cr = castle_rights.white if self.color else castle_rights.black
+
+        kingside = (king_row + 8 != move.origin) and cr.kingside
+        queenside = (king_row + 1 != move.origin) and cr.queenside
+        if self.color:
+            new_rights = castle_rights.with_white(kingside, queenside)
+        else:
+            new_rights = castle_rights.with_black(kingside, queenside)
+        return 0, new_rights
 
 
 class Queen(SlidingPiece):
@@ -229,6 +270,36 @@ class King(JumpingPiece):
         ):
             moves.add(Move(index, king_row + 7))
         return moves
+
+    def make_move(
+        self,
+        move: Move,
+        board: list['Piece | Empty | Border'],
+        castle_rights: CastleRights,
+    ) -> tuple[int, CastleRights]:
+        king_row = 90 if self.color else 20
+        king_index = king_row + 5
+        kingside_castle_index = king_row + 7
+        queenside_castle_index = king_row + 3
+        if self.color:
+            new_rights = castle_rights.with_white(False, False)
+        else:
+            new_rights = castle_rights.with_black(False, False)
+        if move.origin == king_index:
+            if move.dest == kingside_castle_index:
+                board[move.origin] = Empty()
+                board[king_row + 7] = self
+                board[king_row + 6] = board[king_row + 8]
+                board[king_row + 8] = Empty()
+                return 0, new_rights
+            elif move.dest == queenside_castle_index:
+                board[move.origin] = Empty()
+                board[king_row + 3] = self
+                board[king_row + 4] = board[king_row + 1]
+                board[king_row + 1] = Empty()
+                return 0, new_rights
+
+        return super().make_move(move, board, castle_rights)
 
 
 class Empty(BoardEntity):
