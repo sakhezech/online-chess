@@ -1,4 +1,5 @@
 from . import pieces as p
+from .castlerights import CastleRights
 from .exceptions import FENError, NotAPieceError
 from .move import Move
 from .util import index_to_square, square_to_index
@@ -54,7 +55,7 @@ class Board:
             return 0
         return square_to_index(en_passant)
 
-    def _parse_castle_rights(self, castle_rights: str):
+    def _parse_castle_rights(self, castle_rights: str) -> CastleRights:
         cr = {
             True: {
                 'ks': False,
@@ -65,14 +66,17 @@ class Board:
                 'qs': False,
             },
         }
-        if castle_rights == '-':
-            return cr
-        valid_chars = {'k', 'q', 'K', 'Q'}
-        for char in castle_rights:
-            if char not in valid_chars:
-                raise FENError(f'invalid character in castle rights: {char}')
-            cr[char.isupper()][f'{char.lower()}s'] = True
-        return cr
+        if not castle_rights == '-':
+            valid_chars = {'k', 'q', 'K', 'Q'}
+            for char in castle_rights:
+                if char not in valid_chars:
+                    raise FENError(
+                        f'invalid character in castle rights: {char}'
+                    )
+                cr[char.isupper()][f'{char.lower()}s'] = True
+        return CastleRights.from_bools(
+            *[v for c in cr.values() for v in c.values()]
+        )
 
     def _parse_fullmoves(self, fullmoves: str) -> int:
         try:

@@ -1,3 +1,4 @@
+from .castlerights import CastleRights
 from .move import Move
 
 
@@ -17,7 +18,7 @@ class Piece(BoardEntity):
         self,
         board: list['Piece | Empty | Border'],
         en_passant: int,
-        castle_rights: dict[bool, dict[str, bool]],
+        castle_rights: CastleRights,
         index: int | None = None,
     ) -> set[Move]:
         raise NotImplementedError
@@ -34,7 +35,7 @@ class SlidingPiece(Piece):
         self,
         board: list['Piece | Empty | Border'],
         en_passant: int,
-        castle_rights: dict[bool, dict[str, bool]],
+        castle_rights: CastleRights,
         index: int | None = None,
     ) -> set[Move]:
         moves = set()
@@ -65,7 +66,7 @@ class JumpingPiece(Piece):
         self,
         board: list['Piece | Empty | Border'],
         en_passant: int,
-        castle_rights: dict[bool, dict[str, bool]],
+        castle_rights: CastleRights,
         index: int | None = None,
     ) -> set[Move]:
         moves = set()
@@ -90,7 +91,7 @@ class Pawn(Piece):
         self,
         board: list['Piece | Empty | Border'],
         en_passant: int,
-        castle_rights: dict[bool, dict[str, bool]],
+        castle_rights: CastleRights,
         index: int | None = None,
     ) -> set[Move]:
         moves = set()
@@ -155,7 +156,7 @@ class King(JumpingPiece):
         self,
         board: list['Piece | Empty | Border'],
         en_passant: int,
-        castle_rights: dict[bool, dict[str, bool]],
+        castle_rights: CastleRights,
         index: int | None = None,
     ) -> set[Move]:
         moves = super().get_pseudolegal_moves(
@@ -168,16 +169,16 @@ class King(JumpingPiece):
         king_index = king_row + 5
         queenside = {4, 3, 2}
         kingside = {6, 7}
-        cr = castle_rights[self.color]
+        cr = castle_rights.white if self.color else castle_rights.black
 
         if index != king_index:
             return moves
 
-        if cr['qs'] and all(
+        if cr.queenside and all(
             isinstance(board[i + king_row], Empty) for i in queenside
         ):
             moves.add(Move(index, king_row + 3))
-        if cr['ks'] and all(
+        if cr.kingside and all(
             isinstance(board[i + king_row], Empty) for i in kingside
         ):
             moves.add(Move(index, king_row + 7))
