@@ -23,12 +23,41 @@ class Piece(BoardEntity):
     ) -> set[Move]:
         raise NotImplementedError
 
+    @classmethod
+    def threatens_index(
+        cls,
+        index: int,
+        board: list['Piece | Empty | Border'],
+    ):
+        raise NotImplementedError
+
     @property
     def icon(self) -> str:
         return self.char.upper() if self.color else self.char
 
 
-class SlidingPiece(Piece):
+class SymmetricMovePiece(Piece):
+    @classmethod
+    def threatens_index(
+        cls,
+        index: int,
+        board: list['Piece | Empty | Border'],
+    ):
+        target = board[index]
+        if not isinstance(target, Piece):
+            return False
+        target_color = target.color
+        fake_piece = cls(target_color)
+        cr = CastleRights.from_bools(False, False, False, False)
+        moves = fake_piece.get_pseudolegal_moves(board, 0, cr, index)
+        for move in moves:
+            piece = board[move.dest]
+            if isinstance(piece, cls):
+                return True
+        return False
+
+
+class SlidingPiece(SymmetricMovePiece):
     offsets: list[int]
 
     def get_pseudolegal_moves(
@@ -59,7 +88,7 @@ class SlidingPiece(Piece):
         return moves
 
 
-class JumpingPiece(Piece):
+class JumpingPiece(SymmetricMovePiece):
     offsets: list[int]
 
     def get_pseudolegal_moves(
@@ -126,6 +155,23 @@ class Pawn(Piece):
                 moves.add(Move(index, target_index))
 
         return moves
+
+    @classmethod
+    def threatens_index(
+        cls,
+        index: int,
+        board: list['Piece | Empty | Border'],
+    ) -> bool:
+        target = board[index]
+        if not isinstance(target, Piece):
+            return False
+        target_color = target.color
+        offsets = {-9, -11} if target_color else {9, 11}
+        for offset in offsets:
+            piece = board[index + offset]
+            if isinstance(piece, cls) and piece.color != target_color:
+                return True
+        return False
 
 
 class Knight(JumpingPiece):
