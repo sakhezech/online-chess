@@ -25,7 +25,7 @@ class Piece(BoardEntity):
         board: list['Piece | Empty | Border'],
         en_passant: int,
         castle_rights: CastleRights,
-        index: int | None = None,
+        index: int,
     ) -> set[Move]:
         raise NotImplementedError
 
@@ -34,10 +34,8 @@ class Piece(BoardEntity):
         board: list['Piece | Empty | Border'],
         en_passant: int,
         castle_rights: CastleRights,
-        index: int | None = None,
+        index: int,
     ) -> set[Move]:
-        if index is None:
-            index = board.index(self)
         pseudolegal_moves = self.get_pseudolegal_moves(
             board,
             en_passant,
@@ -120,11 +118,9 @@ class SlidingPiece(SymmetricMovePiece):
         board: list['Piece | Empty | Border'],
         en_passant: int,
         castle_rights: CastleRights,
-        index: int | None = None,
+        index: int,
     ) -> set[Move]:
         moves = set()
-        if index is None:
-            index = board.index(self)
         for offset in self.offsets:
             target_index = index
             while True:
@@ -151,11 +147,9 @@ class JumpingPiece(SymmetricMovePiece):
         board: list['Piece | Empty | Border'],
         en_passant: int,
         castle_rights: CastleRights,
-        index: int | None = None,
+        index: int,
     ) -> set[Move]:
         moves = set()
-        if index is None:
-            index = board.index(self)
         for offset in self.offsets:
             target_index = index + offset
             piece = board[target_index]
@@ -176,11 +170,9 @@ class Pawn(Piece):
         board: list['Piece | Empty | Border'],
         en_passant: int,
         castle_rights: CastleRights,
-        index: int | None = None,
+        index: int,
     ) -> set[Move]:
         moves = set()
-        if index is None:
-            index = board.index(self)
         offset = 10 * self.forward_sign
         attack_offsets = {offset + 1, offset - 1}
 
@@ -287,13 +279,11 @@ class King(JumpingPiece):
         board: list['Piece | Empty | Border'],
         en_passant: int,
         castle_rights: CastleRights,
-        index: int | None = None,
+        index: int,
     ) -> set[Move]:
         moves = super().get_pseudolegal_moves(
             board, en_passant, castle_rights, index
         )
-        if index is None:
-            index = board.index(self)
 
         cr = castle_rights.white if self.color else castle_rights.black
 
