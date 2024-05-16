@@ -157,3 +157,15 @@ class Board:
     def _get_pseudolegal_moves_by_square(self, square: str) -> set[Move]:
         index = square_to_index(square)
         return self._get_pseudolegal_moves_by_index(index)
+
+    def _get_legal_moves_by_index(self, index: int) -> set[Move]:
+        piece = self._board[index]
+        if not isinstance(piece, p.Piece):
+            raise NotAPieceError(f'not a piece: {index_to_square(index)}')
+        return piece.get_legal_moves(
+            self._board, self.en_passant, self.castle_rights, index
+        )
+
+    def _get_legal_moves_by_square(self, square: str) -> set[Move]:
+        index = square_to_index(square)
+        return self._get_legal_moves_by_index(index)

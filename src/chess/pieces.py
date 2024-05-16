@@ -29,6 +29,45 @@ class Piece(BoardEntity):
     ) -> set[Move]:
         raise NotImplementedError
 
+    def get_legal_moves(
+        self,
+        board: list['Piece | Empty | Border'],
+        en_passant: int,
+        castle_rights: CastleRights,
+        index: int | None = None,
+    ) -> set[Move]:
+        if index is None:
+            index = board.index(self)
+        pseudolegal_moves = self.get_pseudolegal_moves(
+            board,
+            en_passant,
+            castle_rights,
+            index,
+        )
+        king = [
+            king
+            for king in board
+            if isinstance(king, King) and king.color == self.color
+        ][0]
+        enemy_types = {
+            type(piece) for piece in board if isinstance(piece, Piece)
+        }
+        legal_moves = set()
+        for move in pseudolegal_moves:
+            board_copy = board.copy()
+            piece = board_copy[move.origin]
+            if not isinstance(piece, Piece):
+                raise ValueError
+            piece.make_move(move, board_copy, castle_rights)
+            king_index = board_copy.index(king)
+            if any(
+                Type.threatens_index(king_index, board_copy)
+                for Type in enemy_types
+            ):
+                continue
+            legal_moves.add(move)
+        return legal_moves
+
     @classmethod
     def threatens_index(
         cls,
