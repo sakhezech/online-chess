@@ -208,7 +208,7 @@ class Rook(SlidingPiece):
         )
 
         kingside = (self.king_rook_index != move.origin) and cr.kingside
-        queenside = (self.queen_rook_index + 1 != move.origin) and cr.queenside
+        queenside = (self.queen_rook_index != move.origin) and cr.queenside
         if self.color:
             new_rights = board.castle_rights.with_white(kingside, queenside)
         else:
