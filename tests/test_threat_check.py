@@ -29,6 +29,6 @@ def test_threat_check(data):
     threats = {
         index_to_square(index)
         for index, _ in enumerate(board._board)
-        if Type.threatens_index(index, board._board)
+        if Type.threatens_index(index, board)
     }
     assert threats == expected
