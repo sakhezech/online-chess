@@ -271,6 +271,7 @@ class King(JumpingPiece):
                 board.en_passant = 0
                 board.castle_rights = new_rights
 
+        board.castle_rights = new_rights
         return super().make_move(move, board)
 
 
