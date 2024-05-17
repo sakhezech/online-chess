@@ -1,3 +1,5 @@
+import contextlib
+
 from . import pieces as p
 from .castlerights import CastleRights
 from .exceptions import FENError, NotAPieceError
@@ -57,6 +59,21 @@ class Board:
         return '\n'.join(
             ' '.join(piece.icon for piece in row) for row in board_8x8
         )
+
+    def __iter__(self):
+        return self._board.__iter__()
+
+    def __getitem__(self, __key: str | int):
+        if isinstance(__key, str):
+            __key = square_to_index(__key)
+        return self._board[__key]
+
+    def __setitem__(
+        self, __key: str | int, __item: p.Piece | p.Empty | p.Border
+    ):
+        if isinstance(__key, str):
+            __key = square_to_index(__key)
+        self._board[__key] = __item
 
     def _parse_active_color(self, active_color: str) -> bool:
         if active_color == 'w':
@@ -145,6 +162,18 @@ class Board:
             board.append(p.Border())
 
         return board
+
+    @contextlib.contextmanager
+    def with_move(self, move: Move):
+        board = self._board
+        castle_rights = self.castle_rights
+        en_passant = self.en_passant
+        self._board = board.copy()
+        self._move(move)
+        yield
+        self._board = board
+        self.castle_rights = castle_rights
+        self.en_passant = en_passant
 
     def _get_pseudolegal_moves_by_index(self, index: int) -> set[Move]:
         piece = self._board[index]
