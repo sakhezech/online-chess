@@ -1,5 +1,9 @@
-from .castlerights import CastleRights
+from typing import TYPE_CHECKING
+
 from .move import Move
+
+if TYPE_CHECKING:
+    from .board import Board
 
 
 class BoardEntity:
@@ -20,28 +24,11 @@ class Piece(BoardEntity):
         self.king_rook_index = self.king_row + 8
         self.queen_rook_index = self.king_row + 1
 
-    def get_pseudolegal_moves(
-        self,
-        board: list['Piece | Empty | Border'],
-        en_passant: int,
-        castle_rights: CastleRights,
-        index: int,
-    ) -> set[Move]:
+    def get_pseudolegal_moves(self, board: 'Board', index: int) -> set[Move]:
         raise NotImplementedError
 
-    def get_legal_moves(
-        self,
-        board: list['Piece | Empty | Border'],
-        en_passant: int,
-        castle_rights: CastleRights,
-        index: int,
-    ) -> set[Move]:
-        pseudolegal_moves = self.get_pseudolegal_moves(
-            board,
-            en_passant,
-            castle_rights,
-            index,
-        )
+    def get_legal_moves(self, board: 'Board', index: int) -> set[Move]:
+        pseudolegal_moves = self.get_pseudolegal_moves(board, index)
         king = [
             king
             for king in board
@@ -52,37 +39,28 @@ class Piece(BoardEntity):
         }
         legal_moves = set()
         for move in pseudolegal_moves:
-            board_copy = board.copy()
-            piece = board_copy[move.origin]
-            if not isinstance(piece, Piece):
-                raise ValueError
-            piece.make_move(move, board_copy, castle_rights)
-            king_index = board_copy.index(king)
-            if any(
-                Type.threatens_index(king_index, board_copy)
-                for Type in enemy_types
-            ):
-                continue
-            legal_moves.add(move)
+            with board.with_move(move):
+                king_index = board._board.index(king)
+                if any(
+                    Type.threatens_index(king_index, board)
+                    for Type in enemy_types
+                ):
+                    continue
+                legal_moves.add(move)
         return legal_moves
 
     @classmethod
-    def threatens_index(
-        cls,
-        index: int,
-        board: list['Piece | Empty | Border'],
-    ):
+    def threatens_index(cls, index: int, board: 'Board'):
         raise NotImplementedError
 
     def make_move(
         self,
         move: Move,
-        board: list['Piece | Empty | Border'],
-        castle_rights: CastleRights,
-    ) -> tuple[int, CastleRights]:
+        board: 'Board',
+    ) -> None:
         board[move.origin] = Empty()
         board[move.dest] = self
-        return 0, castle_rights
+        board.en_passant = 0
 
     @property
     def icon(self) -> str:
@@ -91,18 +69,13 @@ class Piece(BoardEntity):
 
 class SymmetricMovePiece(Piece):
     @classmethod
-    def threatens_index(
-        cls,
-        index: int,
-        board: list['Piece | Empty | Border'],
-    ):
+    def threatens_index(cls, index: int, board: 'Board'):
         target = board[index]
         if not isinstance(target, Piece):
             return False
         target_color = target.color
         fake_piece = cls(target_color)
-        cr = CastleRights.from_bools(False, False, False, False)
-        moves = fake_piece.get_pseudolegal_moves(board, 0, cr, index)
+        moves = fake_piece.get_pseudolegal_moves(board, index)
         for move in moves:
             piece = board[move.dest]
             if isinstance(piece, cls):
@@ -113,13 +86,7 @@ class SymmetricMovePiece(Piece):
 class SlidingPiece(SymmetricMovePiece):
     offsets: list[int]
 
-    def get_pseudolegal_moves(
-        self,
-        board: list['Piece | Empty | Border'],
-        en_passant: int,
-        castle_rights: CastleRights,
-        index: int,
-    ) -> set[Move]:
+    def get_pseudolegal_moves(self, board: 'Board', index: int) -> set[Move]:
         moves = set()
         for offset in self.offsets:
             target_index = index
@@ -142,13 +109,7 @@ class SlidingPiece(SymmetricMovePiece):
 class JumpingPiece(SymmetricMovePiece):
     offsets: list[int]
 
-    def get_pseudolegal_moves(
-        self,
-        board: list['Piece | Empty | Border'],
-        en_passant: int,
-        castle_rights: CastleRights,
-        index: int,
-    ) -> set[Move]:
+    def get_pseudolegal_moves(self, board: 'Board', index: int) -> set[Move]:
         moves = set()
         for offset in self.offsets:
             target_index = index + offset
@@ -165,13 +126,7 @@ class JumpingPiece(SymmetricMovePiece):
 class Pawn(Piece):
     char = 'p'
 
-    def get_pseudolegal_moves(
-        self,
-        board: list['Piece | Empty | Border'],
-        en_passant: int,
-        castle_rights: CastleRights,
-        index: int,
-    ) -> set[Move]:
+    def get_pseudolegal_moves(self, board: 'Board', index: int) -> set[Move]:
         moves = set()
         offset = 10 * self.forward_sign
         attack_offsets = {offset + 1, offset - 1}
@@ -190,9 +145,9 @@ class Pawn(Piece):
         for attack_offset in attack_offsets:
             target_index = index + attack_offset
             piece = board[target_index]
-            en_passant_piece = board[en_passant - offset]
+            en_passant_piece = board[board.en_passant - offset]
             if (
-                target_index == en_passant
+                target_index == board.en_passant
                 and isinstance(en_passant_piece, Pawn)
                 and en_passant_piece.color != self.color
                 or isinstance(piece, Piece)
@@ -203,11 +158,7 @@ class Pawn(Piece):
         return moves
 
     @classmethod
-    def threatens_index(
-        cls,
-        index: int,
-        board: list['Piece | Empty | Border'],
-    ) -> bool:
+    def threatens_index(cls, index: int, board: 'Board') -> bool:
         target = board[index]
         if not isinstance(target, Piece):
             return False
@@ -219,18 +170,13 @@ class Pawn(Piece):
                 return True
         return False
 
-    def make_move(
-        self,
-        move: Move,
-        board: list['Piece | Empty | Border'],
-        castle_rights: CastleRights,
-    ) -> tuple[int, CastleRights]:
-        super().make_move(move, board, castle_rights)
+    def make_move(self, move: Move, board: 'Board') -> None:
+        super().make_move(move, board)
         if move.origin - move.dest == -20 * self.forward_sign:
             idx = (move.origin + move.dest) // 2
         else:
             idx = 0
-        return idx, castle_rights
+        board.en_passant = idx
 
 
 class Knight(JumpingPiece):
@@ -247,22 +193,21 @@ class Rook(SlidingPiece):
     char = 'r'
     offsets = [-10, -1, 1, 10]
 
-    def make_move(
-        self,
-        move: Move,
-        board: list['Piece | Empty | Border'],
-        castle_rights: CastleRights,
-    ) -> tuple[int, CastleRights]:
-        super().make_move(move, board, castle_rights)
-        cr = castle_rights.white if self.color else castle_rights.black
+    def make_move(self, move: Move, board: 'Board') -> None:
+        super().make_move(move, board)
+        cr = (
+            board.castle_rights.white
+            if self.color
+            else board.castle_rights.black
+        )
 
         kingside = (self.king_rook_index != move.origin) and cr.kingside
         queenside = (self.queen_rook_index + 1 != move.origin) and cr.queenside
         if self.color:
-            new_rights = castle_rights.with_white(kingside, queenside)
+            new_rights = board.castle_rights.with_white(kingside, queenside)
         else:
-            new_rights = castle_rights.with_black(kingside, queenside)
-        return 0, new_rights
+            new_rights = board.castle_rights.with_black(kingside, queenside)
+        board.castle_rights = new_rights
 
 
 class Queen(SlidingPiece):
@@ -274,18 +219,14 @@ class King(JumpingPiece):
     char = 'k'
     offsets = [-11, -10, -9, -1, 1, 9, 10, 11]
 
-    def get_pseudolegal_moves(
-        self,
-        board: list['Piece | Empty | Border'],
-        en_passant: int,
-        castle_rights: CastleRights,
-        index: int,
-    ) -> set[Move]:
-        moves = super().get_pseudolegal_moves(
-            board, en_passant, castle_rights, index
-        )
+    def get_pseudolegal_moves(self, board: 'Board', index: int) -> set[Move]:
+        moves = super().get_pseudolegal_moves(board, index)
 
-        cr = castle_rights.white if self.color else castle_rights.black
+        cr = (
+            board.castle_rights.white
+            if self.color
+            else board.castle_rights.black
+        )
 
         if index != self.king_index:
             return moves
@@ -302,16 +243,11 @@ class King(JumpingPiece):
             moves.add(Move(index, self.king_rook_index - 1))
         return moves
 
-    def make_move(
-        self,
-        move: Move,
-        board: list['Piece | Empty | Border'],
-        castle_rights: CastleRights,
-    ) -> tuple[int, CastleRights]:
+    def make_move(self, move: Move, board: 'Board') -> None:
         if self.color:
-            new_rights = castle_rights.with_white(False, False)
+            new_rights = board.castle_rights.with_white(False, False)
         else:
-            new_rights = castle_rights.with_black(False, False)
+            new_rights = board.castle_rights.with_black(False, False)
 
         if move.origin == self.king_index:
             if move.dest == self.queen_rook_index - 1:
@@ -319,15 +255,17 @@ class King(JumpingPiece):
                 board[self.queen_rook_index - 1] = self
                 board[self.queen_rook_index - 2] = board[self.queen_rook_index]
                 board[self.queen_rook_index] = Empty()
-                return 0, new_rights
+                board.en_passant = 0
+                board.castle_rights = new_rights
             elif move.dest == self.king_rook_index + 2:
                 board[move.origin] = Empty()
                 board[self.king_rook_index + 2] = self
                 board[self.king_rook_index + 3] = board[self.king_rook_index]
                 board[self.king_rook_index] = Empty()
-                return 0, new_rights
+                board.en_passant = 0
+                board.castle_rights = new_rights
 
-        return super().make_move(move, board, new_rights)
+        return super().make_move(move, board)
 
 
 class Empty(BoardEntity):

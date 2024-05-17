@@ -45,11 +45,7 @@ class Board:
         piece = self._board[index]
         if not isinstance(piece, p.Piece):
             raise NotAPieceError(f'not a piece: {index_to_square(index)}')
-        self.en_passant, self.castle_rights = piece.make_move(
-            move,
-            self._board,
-            self.castle_rights,
-        )
+        piece.make_move(move, self)
 
     def __repr__(self) -> str:
         board_8x8 = [
@@ -179,9 +175,7 @@ class Board:
         piece = self._board[index]
         if not isinstance(piece, p.Piece):
             raise NotAPieceError(f'not a piece: {index_to_square(index)}')
-        return piece.get_pseudolegal_moves(
-            self._board, self.en_passant, self.castle_rights, index
-        )
+        return piece.get_pseudolegal_moves(self, index)
 
     def _get_pseudolegal_moves_by_square(self, square: str) -> set[Move]:
         index = square_to_index(square)
@@ -191,9 +185,7 @@ class Board:
         piece = self._board[index]
         if not isinstance(piece, p.Piece):
             raise NotAPieceError(f'not a piece: {index_to_square(index)}')
-        return piece.get_legal_moves(
-            self._board, self.en_passant, self.castle_rights, index
-        )
+        return piece.get_legal_moves(self, index)
 
     def _get_legal_moves_by_square(self, square: str) -> set[Move]:
         index = square_to_index(square)
