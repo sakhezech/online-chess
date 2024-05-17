@@ -20,5 +20,5 @@ class Move(NamedTuple):
             raise ValueError
         origin = square_to_index(uci[0:2])
         dest = square_to_index(uci[2:4])
-        promotion = uci[4:4]
+        promotion = uci[4:5].upper()
         return cls(origin, dest, promotion)
