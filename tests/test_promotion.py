@@ -1,23 +1,55 @@
 import pytest
 from chess.board import Board
+from chess.castlerights import CastleRights
 from chess.move import Move
 from chess.pieces import Bishop, Knight, Piece, Queen, Rook
+from chess.util import square_to_index
 
-test_data = {
-    'a7a8P': Queen,
-    'b7b8N': Knight,
-    'c7c8B': Bishop,
-    'd7d8R': Rook,
-    'e7e8Q': Queen,
-    'f7f8K': Queen,
-    'g7g8': Queen,
-    'h7h8A': Queen,
-}
+test_data = [
+    ('a7a8P', Queen),
+    ('b7b8N', Knight),
+    ('c7c8B', Bishop),
+    ('d7d8R', Rook),
+    ('e7e8Q', Queen),
+    ('f7f8K', Queen),
+    ('g7g8', Queen),
+    ('h7h8A', Queen),
+]
 
 
-@pytest.mark.parametrize('move, expected', test_data.items())
+@pytest.mark.parametrize('move, expected', test_data)
 def test_promotion(move: str, expected: Piece):
     board = Board('8/PPPPPPPP/8/8/8/8/8/8 w - - 0 1')
     move_ = Move.from_uci(move)
     board._move(move_)
     assert board[move_.dest].__class__ == expected
+
+
+test_data = [
+    (['a1b1', 'b1a1'], CastleRights.from_bools(True, False, True, True)),
+    (['h1f1', 'f1h1'], CastleRights.from_bools(False, True, True, True)),
+    (['e1d1', 'd1e1'], CastleRights.from_bools(False, False, True, True)),
+    (['a8b8', 'b8a8'], CastleRights.from_bools(True, True, True, False)),
+    (['h8f8', 'f8h8'], CastleRights.from_bools(True, True, False, True)),
+    (['e8d8', 'd8e8'], CastleRights.from_bools(True, True, False, False)),
+]
+
+
+@pytest.mark.parametrize('moves, expected', test_data)
+def test_castle_rights(moves: list[str], expected: CastleRights):
+    board = Board('r3k2r/pppppppp/8/8/8/8/PPPPPPPP/R3K2R w KQkq - 0 1')
+    for move in moves:
+        board._move(Move.from_uci(move))
+    assert board.castle_rights == expected
+
+
+def test_en_passant_index():
+    board = Board()
+    board._move(Move.from_uci('a2a4'))
+    assert board.en_passant == square_to_index('a3')
+    board._move(Move.from_uci('a4a5'))
+    assert board.en_passant == 0
+    board._move(Move.from_uci('h7h5'))
+    assert board.en_passant == square_to_index('h6')
+    board._move(Move.from_uci('h5h4'))
+    assert board.en_passant == 0
