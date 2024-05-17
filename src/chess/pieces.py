@@ -19,6 +19,7 @@ class Piece(BoardEntity):
         self.color = color
         self.forward_sign = -1 if color else 1
         self.king_row = 90 if color else 20
+        self.promotion_row = 20 if color else 90
         self.dmove_row = 80 if color else 30
         self.king_index = self.king_row + 5
         self.king_rook_index = self.king_row + 8
@@ -172,6 +173,11 @@ class Pawn(Piece):
 
     def make_move(self, move: Move, board: 'Board') -> None:
         super().make_move(move, board)
+        if self.promotion_row <= move.dest <= self.promotion_row + 10:
+            Type = board._CHAR_TO_PIECE.get(move.promotion.lower(), Queen)
+            if Type is King or Type is Pawn:
+                Type = Queen
+            board[move.dest] = Type(self.color)
         if move.origin - move.dest == -20 * self.forward_sign:
             idx = (move.origin + move.dest) // 2
         else:
