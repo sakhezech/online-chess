@@ -171,12 +171,14 @@ class Board:
         board = self._board
         castle_rights = self.castle_rights
         en_passant = self.en_passant
+        halfmoves = self.halfmoves
         self._board = board.copy()
         self._move(move)
         yield
         self._board = board
         self.castle_rights = castle_rights
         self.en_passant = en_passant
+        self.halfmoves = halfmoves
 
     def _get_pseudolegal_moves_by_index(self, index: int) -> set[Move]:
         piece = self._board[index]

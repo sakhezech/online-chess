@@ -59,6 +59,8 @@ class Piece(BoardEntity):
         move: Move,
         board: 'Board',
     ) -> None:
+        if isinstance(board[move.dest], Piece):
+            board.halfmoves = 0
         board[move.origin] = Empty()
         board[move.dest] = self
         board.en_passant = 0
@@ -183,6 +185,7 @@ class Pawn(Piece):
         else:
             idx = 0
         board.en_passant = idx
+        board.halfmoves = 0
 
 
 class Knight(JumpingPiece):
