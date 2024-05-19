@@ -36,17 +36,6 @@ class Board:
         self.fullmoves = self._parse_fullmoves(fullmoves)
         self.halfmoves = self._parse_halfmoves(halfmoves)
 
-    def move(self, move: str) -> None:
-        move_ = Move.from_uci(move)
-        self._move(move_)
-
-    def _move(self, move: Move) -> None:
-        index = move.origin
-        piece = self._board[index]
-        if not isinstance(piece, p.Piece):
-            raise NotAPieceError(f'not a piece: {index_to_square(index)}')
-        piece.make_move(move, self)
-
     def __repr__(self) -> str:
         board_8x8 = [
             self._board[1 + row_num * 10 : 9 + row_num * 10]
@@ -158,6 +147,17 @@ class Board:
             board.append(p.Border())
 
         return board
+
+    def move(self, move: str) -> None:
+        move_ = Move.from_uci(move)
+        self._move(move_)
+
+    def _move(self, move: Move) -> None:
+        index = move.origin
+        piece = self._board[index]
+        if not isinstance(piece, p.Piece):
+            raise NotAPieceError(f'not a piece: {index_to_square(index)}')
+        piece.make_move(move, self)
 
     @contextlib.contextmanager
     def with_move(self, move: Move):
