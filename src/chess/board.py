@@ -159,26 +159,20 @@ class Board:
             self.fullmoves += 1
         self.legal_moves = self._get_legal_moves_for_active_color()
 
-    def _move(self, move: Move) -> None:
+    def _move(self, move: Move, bookkepp: bool = True) -> None:
         index = move.origin
         piece = self._board[index]
         if not isinstance(piece, p.Piece):
             raise NotAPieceError(f'not a piece: {index_to_square(index)}')
-        piece.make_move(move, self)
+        piece.make_move(move, self, bookkepp)
 
     @contextlib.contextmanager
     def with_move(self, move: Move):
         board = self._board
-        castle_rights = self.castle_rights
-        en_passant = self.en_passant
-        halfmoves = self.halfmoves
         self._board = board.copy()
-        self._move(move)
+        self._move(move, False)
         yield
         self._board = board
-        self.castle_rights = castle_rights
-        self.en_passant = en_passant
-        self.halfmoves = halfmoves
 
     def _get_pseudolegal_moves_by_index(self, index: int) -> set[Move]:
         piece = self._board[index]

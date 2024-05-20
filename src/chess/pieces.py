@@ -61,12 +61,15 @@ class Piece(BoardEntity):
         self,
         move: Move,
         board: 'Board',
+        bookkeep: bool = True,
     ) -> None:
-        if isinstance(board[move.dest], Piece):
-            board.halfmoves = 0
+        if bookkeep:
+            if isinstance(board[move.dest], Piece):
+                board.halfmoves = 0
+            board.en_passant = 0
+
         board[move.origin] = Empty()
         board[move.dest] = self
-        board.en_passant = 0
 
     @property
     def icon(self) -> str:
@@ -176,19 +179,26 @@ class Pawn(Piece):
                 return True
         return False
 
-    def make_move(self, move: Move, board: 'Board') -> None:
-        super().make_move(move, board)
+    def make_move(
+        self,
+        move: Move,
+        board: 'Board',
+        bookkeep: bool = True,
+    ) -> None:
+        super().make_move(move, board, bookkeep)
         if self.promotion_row <= move.dest <= self.promotion_row + 10:
             Type = board._CHAR_TO_PIECE.get(move.promotion.lower(), Queen)
             if Type is King or Type is Pawn:
                 Type = Queen
             board[move.dest] = Type(self.color)
-        if move.origin - move.dest == -20 * self.forward_sign:
-            idx = (move.origin + move.dest) // 2
-        else:
-            idx = 0
-        board.en_passant = idx
-        board.halfmoves = 0
+
+        if bookkeep:
+            if move.origin - move.dest == -20 * self.forward_sign:
+                idx = (move.origin + move.dest) // 2
+            else:
+                idx = 0
+            board.en_passant = idx
+            board.halfmoves = 0
 
 
 class Knight(JumpingPiece):
@@ -205,8 +215,16 @@ class Rook(SlidingPiece):
     char = 'r'
     offsets = [-10, -1, 1, 10]
 
-    def make_move(self, move: Move, board: 'Board') -> None:
-        super().make_move(move, board)
+    def make_move(
+        self,
+        move: Move,
+        board: 'Board',
+        bookkeep: bool = True,
+    ) -> None:
+        super().make_move(move, board, bookkeep)
+        if not bookkeep:
+            return
+
         cr = (
             board.castle_rights.white
             if self.color
@@ -255,30 +273,28 @@ class King(JumpingPiece):
             moves.add(Move(index, self.king_rook_index - 1))
         return moves
 
-    def make_move(self, move: Move, board: 'Board') -> None:
-        if self.color:
-            new_rights = board.castle_rights.with_white(False, False)
-        else:
-            new_rights = board.castle_rights.with_black(False, False)
+    def make_move(
+        self,
+        move: Move,
+        board: 'Board',
+        bookkeep: bool = True,
+    ) -> None:
+        super().make_move(move, board, bookkeep)
 
         if move.origin == self.king_index:
             if move.dest == self.queen_rook_index - 1:
-                board[move.origin] = Empty()
-                board[self.queen_rook_index - 1] = self
                 board[self.queen_rook_index - 2] = board[self.queen_rook_index]
                 board[self.queen_rook_index] = Empty()
-                board.en_passant = 0
-                board.castle_rights = new_rights
             elif move.dest == self.king_rook_index + 2:
-                board[move.origin] = Empty()
-                board[self.king_rook_index + 2] = self
                 board[self.king_rook_index + 3] = board[self.king_rook_index]
                 board[self.king_rook_index] = Empty()
-                board.en_passant = 0
-                board.castle_rights = new_rights
 
-        board.castle_rights = new_rights
-        return super().make_move(move, board)
+        if bookkeep:
+            if self.color:
+                new_rights = board.castle_rights.with_white(False, False)
+            else:
+                new_rights = board.castle_rights.with_black(False, False)
+            board.castle_rights = new_rights
 
 
 class Empty(BoardEntity):
