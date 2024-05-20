@@ -25,18 +25,22 @@ def test_promotion(move: str, expected: Piece):
     assert board[move_.dest].__class__ == expected
 
 
+def make_castle_rights(K: bool, Q: bool, k: bool, q: bool):
+    return {True: CastleRights(K, Q), False: CastleRights(k, q)}
+
+
 test_data = [
-    (['a1b1', 'b1a1'], CastleRights.from_bools(True, False, True, True)),
-    (['h1f1', 'f1h1'], CastleRights.from_bools(False, True, True, True)),
-    (['e1d1', 'd1e1'], CastleRights.from_bools(False, False, True, True)),
-    (['a8b8', 'b8a8'], CastleRights.from_bools(True, True, True, False)),
-    (['h8f8', 'f8h8'], CastleRights.from_bools(True, True, False, True)),
-    (['e8d8', 'd8e8'], CastleRights.from_bools(True, True, False, False)),
+    (['a1b1', 'b1a1'], make_castle_rights(True, False, True, True)),
+    (['h1f1', 'f1h1'], make_castle_rights(False, True, True, True)),
+    (['e1d1', 'd1e1'], make_castle_rights(False, False, True, True)),
+    (['a8b8', 'b8a8'], make_castle_rights(True, True, True, False)),
+    (['h8f8', 'f8h8'], make_castle_rights(True, True, False, True)),
+    (['e8d8', 'd8e8'], make_castle_rights(True, True, False, False)),
 ]
 
 
 @pytest.mark.parametrize('moves, expected', test_data)
-def test_castle_rights(moves: list[str], expected: CastleRights):
+def test_castle_rights(moves: list[str], expected: dict[str, CastleRights]):
     board = Board('r3k2r/pppppppp/8/8/8/8/PPPPPPPP/R3K2R w KQkq - 0 1')
     for move in moves:
         board._move(Move.from_uci(move))
