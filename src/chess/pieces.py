@@ -1,5 +1,6 @@
 from typing import TYPE_CHECKING
 
+from .castlerights import CastleRights
 from .move import Move
 
 if TYPE_CHECKING:
@@ -230,19 +231,11 @@ class Rook(SlidingPiece):
         if not bookkeep:
             return
 
-        cr = (
-            board.castle_rights.white
-            if self.color
-            else board.castle_rights.black
-        )
+        cr = board.castle_rights[self.color]
 
         kingside = (self.king_rook_index != move.origin) and cr.kingside
         queenside = (self.queen_rook_index != move.origin) and cr.queenside
-        if self.color:
-            new_rights = board.castle_rights.with_white(kingside, queenside)
-        else:
-            new_rights = board.castle_rights.with_black(kingside, queenside)
-        board.castle_rights = new_rights
+        board.castle_rights[self.color] = CastleRights(kingside, queenside)
 
 
 class Queen(SlidingPiece):
@@ -257,11 +250,7 @@ class King(JumpingPiece):
     def get_pseudolegal_moves(self, board: 'Board', index: int) -> set[Move]:
         moves = super().get_pseudolegal_moves(board, index)
 
-        cr = (
-            board.castle_rights.white
-            if self.color
-            else board.castle_rights.black
-        )
+        cr = board.castle_rights[self.color]
 
         if index != self.king_index:
             return moves
@@ -295,11 +284,7 @@ class King(JumpingPiece):
                 board[self.king_rook_index] = Empty()
 
         if bookkeep:
-            if self.color:
-                new_rights = board.castle_rights.with_white(False, False)
-            else:
-                new_rights = board.castle_rights.with_black(False, False)
-            board.castle_rights = new_rights
+            board.castle_rights[self.color] = CastleRights(False, False)
 
 
 class Empty(BoardEntity):

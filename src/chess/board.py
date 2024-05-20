@@ -74,28 +74,18 @@ class Board:
             return 0
         return square_to_index(en_passant)
 
-    def _parse_castle_rights(self, castle_rights: str) -> CastleRights:
-        cr = {
-            True: {
-                'ks': False,
-                'qs': False,
-            },
-            False: {
-                'ks': False,
-                'qs': False,
-            },
+    def _parse_castle_rights(
+        self, castle_rights: str
+    ) -> dict[bool, CastleRights]:
+        if castle_rights == '-':
+            return {
+                True: CastleRights(False, False),
+                False: CastleRights(False, False),
+            }
+        return {
+            True: CastleRights('K' in castle_rights, 'Q' in castle_rights),
+            False: CastleRights('k' in castle_rights, 'q' in castle_rights),
         }
-        if not castle_rights == '-':
-            valid_chars = {'k', 'q', 'K', 'Q'}
-            for char in castle_rights:
-                if char not in valid_chars:
-                    raise FENError(
-                        f'invalid character in castle rights: {char}'
-                    )
-                cr[char.isupper()][f'{char.lower()}s'] = True
-        return CastleRights.from_bools(
-            *[v for c in cr.values() for v in c.values()]
-        )
 
     def _parse_fullmoves(self, fullmoves: str) -> int:
         try:
