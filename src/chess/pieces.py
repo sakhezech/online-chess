@@ -30,11 +30,14 @@ class Piece(BoardEntity):
 
     def get_legal_moves(self, board: 'Board', index: int) -> set[Move]:
         pseudolegal_moves = self.get_pseudolegal_moves(board, index)
-        king = [
+        kings = [
             king
             for king in board
             if isinstance(king, King) and king.color == self.color
-        ][0]
+        ]
+        if not kings:
+            return pseudolegal_moves
+        king = kings[0]
         enemy_types = {
             type(piece) for piece in board if isinstance(piece, Piece)
         }
