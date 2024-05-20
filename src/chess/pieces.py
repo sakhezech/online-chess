@@ -32,15 +32,13 @@ class Piece(BoardEntity):
         pseudolegal_moves = self.get_pseudolegal_moves(board, index)
         kings = [
             king
-            for king in board
-            if isinstance(king, King) and king.color == self.color
+            for king in board._pieces[self.color]
+            if isinstance(king, King)
         ]
         if not kings:
             return pseudolegal_moves
         king = kings[0]
-        enemy_types = {
-            type(piece) for piece in board if isinstance(piece, Piece)
-        }
+        enemy_types = {type(piece) for piece in board._pieces[not self.color]}
         legal_moves = set()
         for move in pseudolegal_moves:
             with board.with_move(move):
@@ -64,8 +62,10 @@ class Piece(BoardEntity):
         bookkeep: bool = True,
     ) -> None:
         if bookkeep:
-            if isinstance(board[move.dest], Piece):
+            captured_piece = board[move.dest]
+            if isinstance(captured_piece, Piece):
                 board.halfmoves = 0
+                board._pieces[captured_piece.color].remove(captured_piece)
             board.en_passant = 0
 
         board[move.origin] = Empty()
@@ -186,11 +186,11 @@ class Pawn(Piece):
         bookkeep: bool = True,
     ) -> None:
         super().make_move(move, board, bookkeep)
+        Type = None
         if self.promotion_row <= move.dest <= self.promotion_row + 10:
             Type = board._CHAR_TO_PIECE.get(move.promotion.lower(), Queen)
             if Type is King or Type is Pawn:
                 Type = Queen
-            board[move.dest] = Type(self.color)
 
         if bookkeep:
             if move.origin - move.dest == -20 * self.forward_sign:
@@ -199,6 +199,11 @@ class Pawn(Piece):
                 idx = 0
             board.en_passant = idx
             board.halfmoves = 0
+            if Type:
+                new_piece = Type(self.color)
+                board[move.dest] = new_piece
+                board._pieces[self.color].remove(self)
+                board._pieces[self.color].add(new_piece)
 
 
 class Knight(JumpingPiece):

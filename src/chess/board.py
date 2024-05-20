@@ -35,6 +35,7 @@ class Board:
         self.en_passant = self._parse_en_passant(en_passant)
         self.fullmoves = self._parse_fullmoves(fullmoves)
         self.halfmoves = self._parse_halfmoves(halfmoves)
+        self._pieces = self._get_pieces()
         self.legal_moves = self._get_legal_moves_for_active_color()
 
     def __repr__(self) -> str:
@@ -149,6 +150,17 @@ class Board:
 
         return board
 
+    def _get_pieces(self) -> dict[bool, set[p.Piece]]:
+        white_pieces = set()
+        black_pieces = set()
+        for piece in self:
+            if isinstance(piece, p.Piece):
+                if piece.color:
+                    white_pieces.add(piece)
+                else:
+                    black_pieces.add(piece)
+        return {True: white_pieces, False: black_pieces}
+
     def move(self, move: str) -> None:
         move_ = Move.from_uci(move)
         if move_ not in self.legal_moves:
@@ -196,7 +208,7 @@ class Board:
 
     def _get_legal_moves_for_active_color(self) -> set[Move]:
         moves = set()
-        for i, piece in enumerate(self):
-            if isinstance(piece, p.Piece) and piece.color == self.active_color:
-                moves.update(piece.get_legal_moves(self, i))
+        for piece in self._pieces[self.active_color]:
+            index = self._board.index(piece)
+            moves.update(piece.get_legal_moves(self, index))
         return moves
