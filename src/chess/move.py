@@ -14,6 +14,13 @@ class Move(NamedTuple):
         uci = f'{from_square}{to_square}{self.promotion}'
         return f"{self.__class__.__name__}('{uci}')"
 
+    def __eq__(self, value: object, /) -> bool:
+        return (
+            isinstance(value, self.__class__)
+            and self.origin == value.origin
+            and self.dest == value.dest
+        )
+
     @classmethod
     def from_uci(cls, uci: str):
         if not 4 <= len(uci) <= 5:
