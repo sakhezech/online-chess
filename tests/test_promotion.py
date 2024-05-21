@@ -1,9 +1,7 @@
 import pytest
 from chess.board import Board
-from chess.castlerights import CastleRights
-from chess.move import Move
 from chess.pieces import Bishop, Knight, Piece, Queen, Rook
-from chess.util import square_to_index
+from chess.util import CastleRights, Move, square_to_index
 
 test_data = [
     ('a7a8P', Queen),

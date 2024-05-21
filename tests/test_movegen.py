@@ -1,6 +1,6 @@
 import pytest
 from chess.board import Board
-from chess.move import Move
+from chess.util import Move
 
 
 def make_expected(origin: str, dests: list[str]) -> set[Move]:
