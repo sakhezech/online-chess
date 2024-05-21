@@ -139,6 +139,56 @@ class Board:
 
         return board
 
+    @property
+    def fen(self) -> str:
+        board = ''
+        empty = 0
+        for row in [
+            self._board[row_num * 10 : row_num * 10 + 10]
+            for row_num in range(2, 10)
+        ]:
+            for piece in row:
+                if isinstance(piece, p.Empty):
+                    empty += 1
+                elif isinstance(piece, p.Piece):
+                    if empty != 0:
+                        board += str(empty)
+                        empty = 0
+                    board += piece.char.upper() if piece.color else piece.char
+            if empty != 0:
+                board += str(empty)
+                empty = 0
+            board += '/'
+        board = board[:-1]
+        active_color = 'w' if self.active_color else 'b'
+        if self.castle_rights == {True: (False, False), False: (False, False)}:
+            castle_rights = '-'
+        else:
+            white_cr = self.castle_rights[True]
+            black_cr = self.castle_rights[False]
+            castle_rights = (
+                'K' * white_cr.kingside
+                + 'Q' * white_cr.queenside
+                + 'k' * black_cr.kingside
+                + 'q' * black_cr.queenside
+            )
+        en_passant = (
+            '-' if self.en_passant == 0 else index_to_square(self.en_passant)
+        )
+        halfmove = str(self.halfmoves)
+        fullmove = str(self.fullmoves)
+
+        return ' '.join(
+            [
+                board,
+                active_color,
+                castle_rights,
+                en_passant,
+                halfmove,
+                fullmove,
+            ]
+        )
+
     def _get_pieces(self) -> dict[bool, set[p.Piece]]:
         white_pieces = set()
         black_pieces = set()
