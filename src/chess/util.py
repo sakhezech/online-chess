@@ -1,3 +1,4 @@
+from enum import Enum, auto
 from typing import NamedTuple
 
 
@@ -43,3 +44,11 @@ class Move(NamedTuple):
 class CastleRights(NamedTuple):
     kingside: bool
     queenside: bool
+
+
+class Status(Enum):
+    WHITE_CHECKMATE = auto()
+    BLACK_CHECKMATE = auto()
+    DRAW = auto()
+    STALEMATE = auto()
+    ONGOING = auto()

@@ -2,7 +2,7 @@ import contextlib
 
 from . import pieces as p
 from .exceptions import FENError, NotAPieceError
-from .util import CastleRights, Move, index_to_square, square_to_index
+from .util import CastleRights, Move, Status, index_to_square, square_to_index
 
 
 class Board:
@@ -35,6 +35,7 @@ class Board:
         self.halfmoves = self._parse_halfmoves(halfmoves)
         self._pieces = self._get_pieces()
         self.legal_moves = self._get_legal_moves_for_active_color()
+        self.status = self._get_status()
 
     def __repr__(self) -> str:
         board_8x8 = [
@@ -149,6 +150,22 @@ class Board:
                     black_pieces.add(piece)
         return {True: white_pieces, False: black_pieces}
 
+    def _get_status(self) -> Status:
+        checked = self._is_in_check(self.active_color)
+        has_moves = bool(self.legal_moves)
+        if not has_moves:
+            if checked:
+                return (
+                    Status.WHITE_CHECKMATE
+                    if not self.active_color
+                    else Status.BLACK_CHECKMATE
+                )
+            else:
+                return Status.STALEMATE
+        if self.halfmoves >= 50:
+            return Status.DRAW
+        return Status.ONGOING
+
     def _is_in_check(self, color: bool):
         kings = {
             king for king in self._pieces[color] if isinstance(king, p.King)
@@ -169,6 +186,7 @@ class Board:
         if self.active_color:
             self.fullmoves += 1
         self.legal_moves = self._get_legal_moves_for_active_color()
+        self.status = self._get_status()
 
     def _move(self, move: Move, bookkepp: bool = True) -> None:
         index = move.origin
