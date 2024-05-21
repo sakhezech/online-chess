@@ -1,7 +1,6 @@
 from typing import TYPE_CHECKING
 
-from .castlerights import CastleRights
-from .move import Move
+from .util import CastleRights, Move
 
 if TYPE_CHECKING:
     from .board import Board

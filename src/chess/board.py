@@ -1,10 +1,8 @@
 import contextlib
 
 from . import pieces as p
-from .castlerights import CastleRights
 from .exceptions import FENError, NotAPieceError
-from .move import Move
-from .util import index_to_square, square_to_index
+from .util import CastleRights, Move, index_to_square, square_to_index
 
 
 class Board:
