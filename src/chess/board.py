@@ -38,13 +38,7 @@ class Board:
         self.status = self._get_status()
 
     def __repr__(self) -> str:
-        board_8x8 = [
-            self._board[1 + row_num * 10 : 9 + row_num * 10]
-            for row_num in range(2, 10)
-        ]
-        return '\n'.join(
-            ' '.join(piece.icon for piece in row) for row in board_8x8
-        )
+        return f"{self.__class__.__name__}('{self.fen}')"
 
     def __iter__(self):
         return self._board.__iter__()

@@ -25,6 +25,10 @@ class Piece(BoardEntity):
         self.king_rook_index = self.king_row + 8
         self.queen_rook_index = self.king_row + 1
 
+    def __repr__(self) -> str:
+        color = 'White' if self.color else 'Black'
+        return f"{self.__class__.__name__}('{color}')"
+
     def get_pseudolegal_moves(self, board: 'Board', index: int) -> set[Move]:
         raise NotImplementedError
 
