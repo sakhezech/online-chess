@@ -181,10 +181,11 @@ class Board:
         move_ = Move.from_uci(move)
         if move_ not in self.legal_moves:
             raise ValueError
-        self._move(move_)
-        self.active_color = not self.active_color
+        self.halfmoves += 1
         if self.active_color:
             self.fullmoves += 1
+        self._move(move_)
+        self.active_color = not self.active_color
         self.legal_moves = self._get_legal_moves_for_active_color()
         self.status = self._get_status()
 
