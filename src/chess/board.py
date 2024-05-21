@@ -182,7 +182,7 @@ class Board:
         if move_ not in self.legal_moves:
             raise ValueError
         self.halfmoves += 1
-        if self.active_color:
+        if not self.active_color:
             self.fullmoves += 1
         self._move(move_)
         self.active_color = not self.active_color
