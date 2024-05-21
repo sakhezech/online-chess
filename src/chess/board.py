@@ -151,6 +151,17 @@ class Board:
                     black_pieces.add(piece)
         return {True: white_pieces, False: black_pieces}
 
+    def _is_in_check(self, color: bool):
+        kings = {
+            king for king in self._pieces[color] if isinstance(king, p.King)
+        }
+        enemy_types = {type(piece) for piece in self._pieces[not color]}
+        return any(
+            Type.threatens_index(self._board.index(king), self)
+            for king in kings
+            for Type in enemy_types
+        )
+
     def move(self, move: str) -> None:
         move_ = Move.from_uci(move)
         if move_ not in self.legal_moves:
