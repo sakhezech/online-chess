@@ -16,8 +16,9 @@ def get_number_of_moves(board: Board, depth: int, to_move: bool = True):
         new_board._board = board._board.copy()
         new_board.en_passant = board.en_passant
         new_board.castle_rights = board.castle_rights
-        new_board._move(move)
-        res = get_number_of_moves(new_board, depth - 1, not to_move)
+        new_board._pieces = board._pieces
+        with new_board.with_move(move):
+            res = get_number_of_moves(new_board, depth - 1, not to_move)
         sum += res
     return sum
 

@@ -2,7 +2,7 @@ def pytest_addoption(parser):
     parser.addoption(
         '--perft-depth',
         type=int,
-        default=1,
+        default=2,
         help='list of stringinputs to pass to test functions',
     )
 
