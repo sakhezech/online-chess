@@ -1,24 +1,23 @@
+import copy
+
 from chess.board import Board
 from chess.pieces import Piece
 
 
-def get_number_of_moves(board: Board, depth: int, to_move: bool = True):
+def get_number_of_moves(board: Board, depth: int):
     legal = set()
     for i, piece in enumerate(board._board):
-        if isinstance(piece, Piece) and piece.color == to_move:
+        if isinstance(piece, Piece) and piece.color == board.active_color:
             legal.update(board._get_legal_moves_by_index(i))
     if depth == 1:
         return len(legal)
 
     sum = 0
     for move in legal:
-        new_board = Board()
-        new_board._board = board._board.copy()
-        new_board.en_passant = board.en_passant
-        new_board.castle_rights = board.castle_rights
-        new_board._pieces = board._pieces
-        with new_board.with_move(move):
-            res = get_number_of_moves(new_board, depth - 1, not to_move)
+        new_board = copy.deepcopy(board)
+        new_board.active_color = not board.active_color
+        new_board._move(move)
+        res = get_number_of_moves(new_board, depth - 1)
         sum += res
     return sum
 
