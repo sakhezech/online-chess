@@ -1,6 +1,7 @@
 from typing import TYPE_CHECKING
 
-from .util import CastleRights, Move
+from .exceptions import NotAPieceError
+from .util import CastleRights, Move, index_to_square
 
 if TYPE_CHECKING:
     from .board import Board
@@ -199,6 +200,18 @@ class Pawn(Piece):
         board: 'Board',
         bookkeep: bool = True,
     ) -> None:
+        if move.dest == board.en_passant:
+            en_passanted_index = board.en_passant - 10 * self.forward_sign
+            if bookkeep:
+                en_passanted = board[en_passanted_index]
+                if not isinstance(en_passanted, Piece):
+                    raise NotAPieceError(
+                        "no piece en passant'ed:"
+                        f' {index_to_square(en_passanted_index)}'
+                    )
+                board._pieces[en_passanted.color].remove(en_passanted)
+            board[en_passanted_index] = Empty()
+
         super().make_move(move, board, bookkeep)
         Type = None
         if self.promotion_row <= move.dest <= self.promotion_row + 10:
