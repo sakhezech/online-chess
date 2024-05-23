@@ -260,6 +260,23 @@ class King(JumpingPiece):
     char = 'k'
     offsets = [-11, -10, -9, -1, 1, 9, 10, 11]
 
+    def get_legal_moves(self, board: 'Board', index: int) -> set[Move]:
+        legal_moves = super().get_legal_moves(board, index)
+        kingside = Move(self.king_index, self.king_index + 2)
+        queenside = Move(self.king_index, self.king_index - 2)
+
+        if board._index_threaten(self.king_index - 1, self.color):
+            try:
+                legal_moves.remove(queenside)
+            except KeyError:
+                pass
+        if board._index_threaten(self.king_index + 1, self.color):
+            try:
+                legal_moves.remove(kingside)
+            except KeyError:
+                pass
+        return legal_moves
+
     def get_pseudolegal_moves(self, board: 'Board', index: int) -> set[Move]:
         moves = super().get_pseudolegal_moves(board, index)
 
