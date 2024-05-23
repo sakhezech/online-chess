@@ -42,7 +42,12 @@ class Piece(BoardEntity):
         return legal_moves
 
     @classmethod
-    def threatens_index(cls, index: int, board: 'Board'):
+    def threatens_index(
+        cls,
+        index: int,
+        board: 'Board',
+        color: bool | None = None,
+    ):
         raise NotImplementedError
 
     def make_move(
@@ -68,11 +73,19 @@ class Piece(BoardEntity):
 
 class SymmetricMovePiece(Piece):
     @classmethod
-    def threatens_index(cls, index: int, board: 'Board'):
+    def threatens_index(
+        cls,
+        index: int,
+        board: 'Board',
+        color: bool | None = None,
+    ):
         target = board[index]
-        if not isinstance(target, Piece):
-            return False
-        target_color = target.color
+        if color is not None:
+            target_color = color
+        else:
+            if not isinstance(target, Piece):
+                return False
+            target_color = target.color
         fake_piece = cls(target_color)
         moves = fake_piece.get_pseudolegal_moves(board, index)
         for move in moves:
@@ -157,12 +170,23 @@ class Pawn(Piece):
         return moves
 
     @classmethod
-    def threatens_index(cls, index: int, board: 'Board') -> bool:
-        target = board[index]
-        if not isinstance(target, Piece):
-            return False
-        target_color = target.color
-        offsets = {9 * target.forward_sign, 11 * target.forward_sign}
+    def threatens_index(
+        cls,
+        index: int,
+        board: 'Board',
+        color: bool | None = None,
+    ) -> bool:
+        if color is not None:
+            target_color = color
+        else:
+            target = board[index]
+            if not isinstance(target, Piece):
+                return False
+            target_color = target.color
+        offsets = {
+            9 * (-1 if target_color else 1),
+            11 * (-1 if target_color else 1),
+        }
         for offset in offsets:
             piece = board[index + offset]
             if isinstance(piece, cls) and piece.color != target_color:

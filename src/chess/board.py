@@ -210,15 +210,19 @@ class Board:
             return Status.DRAW
         return Status.ONGOING
 
+    def _index_threaten(self, index: int, color: bool | None = None) -> bool:
+        enemy_types = {type(piece) for piece in self._pieces[not color]}
+        return any(
+            Type.threatens_index(index, self, color) for Type in enemy_types
+        )
+
     def _is_in_check(self, color: bool):
         kings = {
             king for king in self._pieces[color] if isinstance(king, p.King)
         }
-        enemy_types = {type(piece) for piece in self._pieces[not color]}
         return any(
-            Type.threatens_index(self._board.index(king), self)
+            self._index_threaten(self._board.index(king), color)
             for king in kings
-            for Type in enemy_types
         )
 
     def move(self, move: str) -> None:
