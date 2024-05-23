@@ -319,12 +319,12 @@ class King(JumpingPiece):
         super().make_move(move, board, bookkeep)
 
         if move.origin == self.king_index:
-            if move.dest == self.queen_rook_index - 1:
-                board[self.queen_rook_index - 2] = board[self.queen_rook_index]
-                board[self.queen_rook_index] = Empty()
-            elif move.dest == self.king_rook_index + 2:
-                board[self.king_rook_index + 3] = board[self.king_rook_index]
+            if move.dest == self.king_rook_index - 1:
+                board[self.king_rook_index - 2] = board[self.king_rook_index]
                 board[self.king_rook_index] = Empty()
+            elif move.dest == self.queen_rook_index + 2:
+                board[self.queen_rook_index + 3] = board[self.queen_rook_index]
+                board[self.queen_rook_index] = Empty()
 
         if bookkeep:
             board.castle_rights[self.color] = CastleRights(False, False)
