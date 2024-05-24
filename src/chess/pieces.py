@@ -279,6 +279,16 @@ class King(JumpingPiece):
         kingside = Move(self.color.king_index, self.color.king_index + 2)
         queenside = Move(self.color.king_index, self.color.king_index - 2)
 
+        if board._index_threaten(self.color.king_index, self.color):
+            try:
+                legal_moves.remove(queenside)
+            except KeyError:
+                pass
+            try:
+                legal_moves.remove(kingside)
+            except KeyError:
+                pass
+
         if board._index_threaten(self.color.king_index - 1, self.color):
             try:
                 legal_moves.remove(queenside)
