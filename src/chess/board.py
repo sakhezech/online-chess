@@ -1,6 +1,7 @@
 import contextlib
 
 from . import pieces as p
+from .color import BLACK, WHITE, Color
 from .exceptions import FENError, NotAPieceError
 from .util import CastleRights, Move, Status, index_to_square, square_to_index
 
@@ -14,6 +15,7 @@ class Board:
         p.Queen.char: p.Queen,
         p.King.char: p.King,
     }
+    _COLORS = [WHITE, BLACK]
 
     def __init__(self, fen: str | None = None) -> None:
         if fen is None:
@@ -29,6 +31,7 @@ class Board:
 
         self._board = self._parse_board(board)
         self.active_color = self._parse_active_color(active_color)
+        self._total_halfmoves = self._COLORS.index(self.active_color)
         self.castle_rights = self._parse_castle_rights(castle_rights)
         self.en_passant = self._parse_en_passant(en_passant)
         self.fullmoves = self._parse_fullmoves(fullmoves)
@@ -55,11 +58,11 @@ class Board:
             __key = square_to_index(__key)
         self._board[__key] = __item
 
-    def _parse_active_color(self, active_color: str) -> bool:
+    def _parse_active_color(self, active_color: str) -> Color:
         if active_color == 'w':
-            return True
+            return WHITE
         elif active_color == 'b':
-            return False
+            return BLACK
         raise FENError(f"active color is not 'w' or 'b': {active_color}")
 
     def _parse_en_passant(self, en_passant: str) -> int:
@@ -69,15 +72,15 @@ class Board:
 
     def _parse_castle_rights(
         self, castle_rights: str
-    ) -> dict[bool, CastleRights]:
+    ) -> dict[Color, CastleRights]:
         if castle_rights == '-':
             return {
-                True: CastleRights(False, False),
-                False: CastleRights(False, False),
+                WHITE: CastleRights(False, False),
+                BLACK: CastleRights(False, False),
             }
         return {
-            True: CastleRights('K' in castle_rights, 'Q' in castle_rights),
-            False: CastleRights('k' in castle_rights, 'q' in castle_rights),
+            WHITE: CastleRights('K' in castle_rights, 'Q' in castle_rights),
+            BLACK: CastleRights('k' in castle_rights, 'q' in castle_rights),
         }
 
     def _parse_fullmoves(self, fullmoves: str) -> int:
@@ -123,7 +126,7 @@ class Board:
             else:
                 if char.lower() not in self._CHAR_TO_PIECE:
                     raise FENError(f'character is not a piece type: {char}')
-                color = char.isupper()
+                color = WHITE if char.isupper() else BLACK
                 PieceType = self._CHAR_TO_PIECE[char.lower()]
                 piece = PieceType(color)
                 board.append(piece)
@@ -148,18 +151,25 @@ class Board:
                     if empty != 0:
                         board += str(empty)
                         empty = 0
-                    board += piece.char.upper() if piece.color else piece.char
+                    board += (
+                        piece.char.upper()
+                        if piece.color == WHITE
+                        else piece.char
+                    )
             if empty != 0:
                 board += str(empty)
                 empty = 0
             board += '/'
         board = board[:-1]
-        active_color = 'w' if self.active_color else 'b'
-        if self.castle_rights == {True: (False, False), False: (False, False)}:
+        active_color = 'w' if self.active_color == WHITE else 'b'
+        if self.castle_rights == {
+            WHITE: (False, False),
+            BLACK: (False, False),
+        }:
             castle_rights = '-'
         else:
-            white_cr = self.castle_rights[True]
-            black_cr = self.castle_rights[False]
+            white_cr = self.castle_rights[WHITE]
+            black_cr = self.castle_rights[BLACK]
             castle_rights = (
                 'K' * white_cr.kingside
                 + 'Q' * white_cr.queenside
@@ -183,16 +193,16 @@ class Board:
             ]
         )
 
-    def _get_pieces(self) -> dict[bool, set[p.Piece]]:
+    def _get_pieces(self) -> dict[Color, set[p.Piece]]:
         white_pieces = set()
         black_pieces = set()
         for piece in self:
             if isinstance(piece, p.Piece):
-                if piece.color:
+                if piece.color == WHITE:
                     white_pieces.add(piece)
                 else:
                     black_pieces.add(piece)
-        return {True: white_pieces, False: black_pieces}
+        return {WHITE: white_pieces, BLACK: black_pieces}
 
     def _get_status(self) -> Status:
         checked = self._is_in_check(self.active_color)
@@ -201,7 +211,7 @@ class Board:
             if checked:
                 return (
                     Status.WHITE_CHECKMATE
-                    if not self.active_color
+                    if self.active_color == BLACK
                     else Status.BLACK_CHECKMATE
                 )
             else:
@@ -210,13 +220,16 @@ class Board:
             return Status.DRAW
         return Status.ONGOING
 
-    def _index_threaten(self, index: int, color: bool | None = None) -> bool:
-        enemy_types = {type(piece) for piece in self._pieces[not color]}
+    def _index_threaten(self, index: int, color: Color | None = None) -> bool:
+        enemy_types = {
+            type(piece)
+            for piece in self._pieces[WHITE if color == BLACK else BLACK]
+        }
         return any(
             Type.threatens_index(index, self, color) for Type in enemy_types
         )
 
-    def _is_in_check(self, color: bool):
+    def _is_in_check(self, color: Color):
         kings = {
             king for king in self._pieces[color] if isinstance(king, p.King)
         }
@@ -230,10 +243,13 @@ class Board:
         if move_ not in self.legal_moves:
             raise ValueError
         self.halfmoves += 1
-        if not self.active_color:
+        self._total_halfmoves += 1
+        if self.active_color == BLACK:
             self.fullmoves += 1
         self._move(move_)
-        self.active_color = not self.active_color
+        self.active_color = self._COLORS[
+            self._total_halfmoves % len(self._COLORS)
+        ]
         self.legal_moves = self._get_legal_moves_for_active_color()
         self.status = self._get_status()
 
