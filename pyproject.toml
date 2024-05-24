@@ -19,6 +19,9 @@ quote-style = 'single'
 [tool.ruff.lint]
 extend-select = ['I', 'E501']
 
+[tool.pytest.ini_options]
+markers = ['perft: check number of legal moves against predetermined values']
+
 [build-system]
 requires = ['hatchling']
 build-backend = 'hatchling.build'
