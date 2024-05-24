@@ -1,4 +1,5 @@
 from chess.board import Board
+from chess.color import BLACK, WHITE
 from chess.util import CastleRights, Status
 
 
@@ -55,6 +56,6 @@ def test_full_game():
     assert board.fullmoves == 21
     assert board.en_passant == 0
     assert board.castle_rights == {
-        True: CastleRights(True, False),
-        False: CastleRights(False, False),
+        WHITE: CastleRights(True, False),
+        BLACK: CastleRights(False, False),
     }

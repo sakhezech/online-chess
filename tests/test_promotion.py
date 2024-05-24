@@ -1,5 +1,6 @@
 import pytest
 from chess.board import Board
+from chess.color import BLACK, WHITE
 from chess.pieces import Bishop, Knight, Piece, Queen, Rook
 from chess.util import CastleRights, Move, square_to_index
 
@@ -24,7 +25,7 @@ def test_promotion(move: str, expected: Piece):
 
 
 def make_castle_rights(K: bool, Q: bool, k: bool, q: bool):
-    return {True: CastleRights(K, Q), False: CastleRights(k, q)}
+    return {WHITE: CastleRights(K, Q), BLACK: CastleRights(k, q)}
 
 
 test_data = [

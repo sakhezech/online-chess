@@ -16,7 +16,11 @@ def get_number_of_moves(board: Board, depth: int):
     sum = 0
     for move in legal:
         new_board = copy.deepcopy(board)
-        new_board.active_color = not board.active_color
+        new_board._COLORS = board._COLORS
+        new_board._total_halfmoves += 1
+        new_board.active_color = new_board._COLORS[
+            new_board._total_halfmoves % len(new_board._COLORS)
+        ]
         new_board._move(move)
         res = get_number_of_moves(new_board, depth - 1)
         sum += res
