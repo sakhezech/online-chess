@@ -1,3 +1,4 @@
+import dataclasses
 from enum import Enum, auto
 from typing import NamedTuple
 
@@ -41,7 +42,8 @@ class Move(NamedTuple):
         return cls(origin, dest, promotion)
 
 
-class CastleRights(NamedTuple):
+@dataclasses.dataclass
+class CastleRights:
     kingside: bool
     queenside: bool
 

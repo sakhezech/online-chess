@@ -163,8 +163,8 @@ class Board:
         board = board[:-1]
         active_color = 'w' if self.active_color == WHITE else 'b'
         if self.castle_rights == {
-            WHITE: (False, False),
-            BLACK: (False, False),
+            WHITE: CastleRights(False, False),
+            BLACK: CastleRights(False, False),
         }:
             castle_rights = '-'
         else:

@@ -2,7 +2,7 @@ from typing import TYPE_CHECKING
 
 from .color import WHITE, Color
 from .exceptions import NotAPieceError
-from .util import CastleRights, Move, index_to_square
+from .util import Move, index_to_square
 
 if TYPE_CHECKING:
     from .board import Board
@@ -56,6 +56,11 @@ class Piece(BoardEntity):
             if isinstance(captured_piece, Piece):
                 board.halfmoves = 0
                 board._pieces[captured_piece.color].remove(captured_piece)
+                cr = board.castle_rights[captured_piece.color]
+                if move.dest == captured_piece.color.king_rook_index:
+                    cr.kingside = False
+                if move.dest == captured_piece.color.queen_rook_index:
+                    cr.queenside = False
             board.en_passant = 0
 
         board[move.origin] = Empty()
@@ -255,14 +260,16 @@ class Rook(SlidingPiece):
         bookkeep: bool = True,
     ) -> None:
         super().make_move(move, board, bookkeep)
-        if not bookkeep:
-            return
 
-        cr = board.castle_rights[self.color]
+        if bookkeep:
+            cr = board.castle_rights[self.color]
 
-        kside = (self.color.king_rook_index != move.origin) and cr.kingside
-        qside = (self.color.queen_rook_index != move.origin) and cr.queenside
-        board.castle_rights[self.color] = CastleRights(kside, qside)
+            cr.kingside = cr.kingside and (
+                self.color.king_rook_index != move.origin
+            )
+            cr.queenside = cr.queenside and (
+                self.color.queen_rook_index != move.origin
+            )
 
 
 class Queen(SlidingPiece):
@@ -346,7 +353,9 @@ class King(JumpingPiece):
                 board[self.color.queen_rook_index] = Empty()
 
         if bookkeep:
-            board.castle_rights[self.color] = CastleRights(False, False)
+            cr = board.castle_rights[self.color]
+            cr.kingside = False
+            cr.queenside = False
 
 
 class Empty(BoardEntity):
