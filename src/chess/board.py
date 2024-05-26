@@ -261,7 +261,7 @@ class Board:
         piece.make_move(move, self, bookkepp)
 
     @contextlib.contextmanager
-    def with_move(self, move: Move):
+    def _with_move(self, move: Move):
         board = self._board
         self._board = board.copy()
         self._move(move, False)

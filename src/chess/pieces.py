@@ -31,7 +31,7 @@ class Piece(BoardEntity):
         pseudolegal_moves = self.get_pseudolegal_moves(board, index)
         legal_moves = set()
         for move in pseudolegal_moves:
-            with board.with_move(move):
+            with board._with_move(move):
                 if not board._is_in_check(self.color):
                     legal_moves.add(move)
         return legal_moves
