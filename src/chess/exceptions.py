@@ -8,3 +8,7 @@ class FENError(ChessError):
 
 class NotAPieceError(ChessError):
     pass
+
+
+class IllegalMoveError(ChessError):
+    pass

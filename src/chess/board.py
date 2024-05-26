@@ -2,7 +2,7 @@ import contextlib
 
 from . import pieces as p
 from .color import BLACK, WHITE, Color
-from .exceptions import FENError, NotAPieceError
+from .exceptions import FENError, IllegalMoveError, NotAPieceError
 from .util import CastleRights, Move, Status, index_to_square, square_to_index
 
 
@@ -241,7 +241,7 @@ class Board:
     def move(self, move: str) -> None:
         move_ = Move.from_uci(move)
         if move_ not in self.legal_moves:
-            raise ValueError
+            raise IllegalMoveError(f'move is not legal: {move}')
         self.halfmoves += 1
         self._total_halfmoves += 1
         if self.active_color == BLACK:
