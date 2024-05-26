@@ -226,7 +226,7 @@ class Board:
             for piece in self._pieces[WHITE if color == BLACK else BLACK]
         }
         return any(
-            Type.threatens_index(index, self, color) for Type in enemy_types
+            Type.threatens_index(self, index, color) for Type in enemy_types
         )
 
     def _is_in_check(self, color: Color):
@@ -258,7 +258,7 @@ class Board:
         piece = self._board[index]
         if not isinstance(piece, p.Piece):
             raise NotAPieceError(f'not a piece: {index_to_square(index)}')
-        piece.make_move(move, self, bookkepp)
+        piece.make_move(self, move, bookkepp)
 
     @contextlib.contextmanager
     def _with_move(self, move: Move):

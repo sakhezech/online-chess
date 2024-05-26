@@ -39,16 +39,16 @@ class Piece(BoardEntity):
     @classmethod
     def threatens_index(
         cls,
-        index: int,
         board: 'Board',
+        index: int,
         color: Color | None = None,
     ):
         raise NotImplementedError
 
     def make_move(
         self,
-        move: Move,
         board: 'Board',
+        move: Move,
         bookkeep: bool = True,
     ) -> None:
         if bookkeep:
@@ -75,8 +75,8 @@ class SymmetricMovePiece(Piece):
     @classmethod
     def threatens_index(
         cls,
-        index: int,
         board: 'Board',
+        index: int,
         color: Color | None = None,
     ):
         target = board[index]
@@ -173,8 +173,8 @@ class Pawn(Piece):
     @classmethod
     def threatens_index(
         cls,
-        index: int,
         board: 'Board',
+        index: int,
         color: Color | None = None,
     ) -> bool:
         if color is not None:
@@ -196,8 +196,8 @@ class Pawn(Piece):
 
     def make_move(
         self,
-        move: Move,
         board: 'Board',
+        move: Move,
         bookkeep: bool = True,
     ) -> None:
         if move.dest == board.en_passant:
@@ -214,7 +214,7 @@ class Pawn(Piece):
                 board._pieces[en_passanted.color].remove(en_passanted)
             board[en_passanted_index] = Empty()
 
-        super().make_move(move, board, bookkeep)
+        super().make_move(board, move, bookkeep)
         Type = None
         if (
             self.color.promotion_row
@@ -255,11 +255,11 @@ class Rook(SlidingPiece):
 
     def make_move(
         self,
-        move: Move,
         board: 'Board',
+        move: Move,
         bookkeep: bool = True,
     ) -> None:
-        super().make_move(move, board, bookkeep)
+        super().make_move(board, move, bookkeep)
 
         if bookkeep:
             cr = board.castle_rights[self.color]
@@ -334,11 +334,11 @@ class King(JumpingPiece):
 
     def make_move(
         self,
-        move: Move,
         board: 'Board',
+        move: Move,
         bookkeep: bool = True,
     ) -> None:
-        super().make_move(move, board, bookkeep)
+        super().make_move(board, move, bookkeep)
 
         if move.origin == self.color.king_index:
             if move.dest == self.color.king_index + 2:
