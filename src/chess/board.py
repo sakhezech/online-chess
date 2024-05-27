@@ -7,17 +7,15 @@ from .util import CastleRights, Move, Status, index_to_square, square_to_index
 
 
 class Board:
-    _CHAR_TO_PIECE = {
-        p.Pawn.char: p.Pawn,
-        p.Knight.char: p.Knight,
-        p.Bishop.char: p.Bishop,
-        p.Rook.char: p.Rook,
-        p.Queen.char: p.Queen,
-        p.King.char: p.King,
-    }
+    _PIECE_TYPES = {p.Pawn, p.Knight, p.Bishop, p.Rook, p.Queen, p.King}
+    _PAWN_PROMOTIONS = {p.Knight, p.Bishop, p.Rook, p.Queen}
     _COLORS = [WHITE, BLACK]
 
     def __init__(self, fen: str | None = None) -> None:
+        self._CHAR_TO_PIECE = {Type.char: Type for Type in self._PIECE_TYPES}
+        self._CHAR_TO_PROMOTION = {
+            Type.char: Type for Type in self._PAWN_PROMOTIONS
+        }
         if fen is None:
             fen = 'rnbqkbnr/pppppppp/8/8/8/8/PPPPPPPP/RNBQKBNR w KQkq - 0 1'
         (

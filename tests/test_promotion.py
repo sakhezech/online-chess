@@ -5,14 +5,10 @@ from chess.pieces import Bishop, Knight, Piece, Queen, Rook
 from chess.util import CastleRights, Move, square_to_index
 
 test_data = [
-    ('a7a8P', Queen),
     ('b7b8N', Knight),
     ('c7c8B', Bishop),
     ('d7d8R', Rook),
     ('e7e8Q', Queen),
-    ('f7f8K', Queen),
-    ('g7g8', Queen),
-    ('h7h8A', Queen),
 ]
 
 

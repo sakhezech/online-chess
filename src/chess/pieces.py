@@ -138,6 +138,14 @@ class JumpingPiece(SymmetricMovePiece):
 class Pawn(Piece):
     char = 'p'
 
+    def _make_moves(self, board: 'Board', origin: int, dest: int) -> set[Move]:
+        if self.color.promotion_row <= dest <= self.color.promotion_row + 10:
+            return {
+                Move(origin, dest, Type.char.upper())
+                for Type in board._PAWN_PROMOTIONS
+            }
+        return {Move(origin, dest)}
+
     def get_pseudolegal_moves(self, board: 'Board', index: int) -> set[Move]:
         moves = set()
         offset = 10 * self.color.forward_sign
@@ -146,14 +154,14 @@ class Pawn(Piece):
         target_index = index + offset
         piece = board[target_index]
         if isinstance(piece, Empty):
-            moves.add(Move(index, target_index))
+            moves.update(self._make_moves(board, index, target_index))
             target_index += offset
             piece = board[target_index]
             if (
                 self.color.dmove_row <= index <= self.color.dmove_row + 10
                 and isinstance(piece, Empty)
             ):
-                moves.add(Move(index, target_index))
+                moves.update(self._make_moves(board, index, target_index))
 
         for attack_offset in attack_offsets:
             target_index = index + attack_offset
@@ -166,7 +174,7 @@ class Pawn(Piece):
                 or isinstance(piece, Piece)
                 and piece.color != self.color
             ):
-                moves.add(Move(index, target_index))
+                moves.update(self._make_moves(board, index, target_index))
 
         return moves
 
@@ -221,9 +229,7 @@ class Pawn(Piece):
             <= move.dest
             <= self.color.promotion_row + 10
         ):
-            Type = board._CHAR_TO_PIECE.get(move.promotion.lower(), Queen)
-            if Type is King or Type is Pawn:
-                Type = Queen
+            Type = board._CHAR_TO_PROMOTION[move.promotion.lower()]
 
         if bookkeep:
             if move.origin - move.dest == -20 * self.color.forward_sign:
