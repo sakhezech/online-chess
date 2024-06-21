@@ -1,0 +1,14 @@
+{{< _template}}{{!></>}}
+{{$title}}Index{{/title}}
+{{$content}}
+{{#user}}
+<button class="center" hx-post="/start-game">Start Game</button>
+{{/user}}
+{{^user}}
+<fieldset class="center">
+  <legend>note</legend>
+  <a href="/login"> Log in</a> to start a game.
+</fieldset>
+{{/user}}
+{{/content}}
+{{/ _template}}
