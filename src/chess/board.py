@@ -39,7 +39,7 @@ class Board:
         self.status = self._get_status()
 
     def __repr__(self) -> str:
-        return f"{self.__class__.__name__}('{self.fen}')"
+        return f"{self.__class__.__name__}('{self.fen()}')"
 
     def __iter__(self):
         return self._board.__iter__()
@@ -134,7 +134,6 @@ class Board:
 
         return board
 
-    @property
     def fen(self) -> str:
         board = ''
         empty = 0
