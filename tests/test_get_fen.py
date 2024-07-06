@@ -120,4 +120,4 @@ test_data = {
 @pytest.mark.parametrize('fen', test_data)
 def test_get_fen(fen: str):
     board = Board(fen)
-    assert board.fen == fen
+    assert board.fen() == fen
