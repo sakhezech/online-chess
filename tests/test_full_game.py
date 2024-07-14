@@ -1,6 +1,7 @@
 from chess.board import Board
 from chess.color import BLACK, WHITE
-from chess.util import CastleRights, Status
+from chess.status import Checkmate
+from chess.util import CastleRights
 
 
 def test_full_game():
@@ -51,7 +52,7 @@ def test_full_game():
     for move in moves:
         board.move(move)
     # 3Q1k1r/2p2ppp/6q1/3R4/5b2/7P/PPP2PP1/4K2R b K - 2 21
-    assert board.status == Status.WHITE_CHECKMATE
+    assert board.status == Checkmate(WHITE)
     assert board.halfmoves == 2
     assert board.fullmoves == 21
     assert board.en_passant == 0
