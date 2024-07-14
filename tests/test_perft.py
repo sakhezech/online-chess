@@ -21,7 +21,7 @@ def get_number_of_moves(board: Board, depth: int):
         new_board.active_color = new_board._COLORS[
             new_board._total_halfmoves % len(new_board._COLORS)
         ]
-        new_board._move(move)
+        new_board._move_raw(move)
         res = get_number_of_moves(new_board, depth - 1)
         sum += res
     return sum

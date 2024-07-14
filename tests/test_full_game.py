@@ -50,7 +50,7 @@ def test_full_game():
         'd7d8',
     ]
     for move in moves:
-        board.move(move)
+        board.move_uci(move)
     # 3Q1k1r/2p2ppp/6q1/3R4/5b2/7P/PPP2PP1/4K2R b K - 2 21
     assert board.status == Checkmate(WHITE)
     assert board.halfmoves == 2
