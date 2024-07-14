@@ -45,7 +45,7 @@ async def login(
 ):
     user = crud.get_user_by_username(db, username)
     if user and user.validate_password(password):
-        sess = crud.create_session(db, user)
+        sess = crud.create_session(db, user.user_id)
         set_session_cookie(response, sess)
         response.headers['HX-Redirect'] = '/'
 
@@ -60,7 +60,7 @@ async def register(
 ):
     if password == repeat:
         user = crud.create_user(db, username, password)
-        sess = crud.create_session(db, user)
+        sess = crud.create_session(db, user.user_id)
         set_session_cookie(response, sess)
         response.headers['HX-Redirect'] = '/'
 

@@ -65,8 +65,8 @@ class Session(_Base):
     user_id: Mapped[str] = mapped_column(ForeignKey('user.user_id'))
     user: Mapped[User] = relationship()
 
-    def __init__(self, user: User):
-        self.user = user
+    def __init__(self, user_id: str):
+        self.user_id = user_id
 
 
 class Chess(_Base):
@@ -93,15 +93,15 @@ class Chess(_Base):
 
     def __init__(
         self,
-        white_player: User | None = None,
-        black_player: User | None = None,
+        white_player_id: str | None = None,
+        black_player_id: str | None = None,
         fen: str | None = None,
     ):
+        self.white_player_id = white_player_id
+        self.black_player_id = black_player_id
         self.fen = (
             fen or 'rnbqkbnr/pppppppp/8/8/8/8/PPPPPPPP/RNBQKBNR w KQkq - 0 1'
         )
-        self.white_player = white_player
-        self.black_player = black_player
 
 
 class Move(_Base):
@@ -117,9 +117,9 @@ class Move(_Base):
     chess: Mapped[Chess] = relationship(back_populates='moves')
     user: Mapped[User] = relationship()
 
-    def __init__(self, chess: Chess, user: User, fen: str):
-        self.chess = chess
-        self.user = user
+    def __init__(self, chess_id: str, user_id: str, fen: str):
+        self.chess_id = chess_id
+        self.user_id = user_id
         self.fen = fen
 
 

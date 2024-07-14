@@ -25,15 +25,15 @@ def get_user_by_session_id(db: Session, session_id: str) -> m.User | None:
     return res.user
 
 
-def create_session(db: Session, user: m.User) -> m.Session:
-    sess = m.Session(user)
+def create_session(db: Session, user_id: str) -> m.Session:
+    sess = m.Session(user_id)
     db.add(sess)
     db.commit()
     db.refresh(sess)
     return sess
 
 
-def delete_session_by_session_id(db: Session, session: str) -> None:
-    stmt = delete(m.Session).where(m.Session.session_id == session)
+def delete_session_by_session_id(db: Session, session_id: str) -> None:
+    stmt = delete(m.Session).where(m.Session.session_id == session_id)
     db.execute(stmt)
     db.commit()
