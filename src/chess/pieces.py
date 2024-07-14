@@ -31,17 +31,17 @@ class Piece(BoardEntity):
         legal_moves = set()
         for move in pseudolegal_moves:
             with board._with_move(move):
-                if not board._is_in_check(self.color):
+                if not board._is_king_in_check(self.color):
                     legal_moves.add(move)
         return legal_moves
 
     @classmethod
-    def threatens_index(
+    def is_square_attacked_by_piece_type(
         cls,
         board: 'Board',
         index: int,
         color: Color | None = None,
-    ):
+    ) -> bool:
         raise NotImplementedError
 
     def make_move(
@@ -73,12 +73,12 @@ class Piece(BoardEntity):
 
 class SymmetricMovePiece(Piece):
     @classmethod
-    def threatens_index(
+    def is_square_attacked_by_piece_type(
         cls,
         board: 'Board',
         index: int,
         color: Color | None = None,
-    ):
+    ) -> bool:
         target = board[index]
         if color is not None:
             target_color = color
@@ -179,7 +179,7 @@ class Pawn(Piece):
         return moves
 
     @classmethod
-    def threatens_index(
+    def is_square_attacked_by_piece_type(
         cls,
         board: 'Board',
         index: int,
@@ -292,7 +292,7 @@ class King(JumpingPiece):
         kingside = Move(self.color.king_index, self.color.king_index + 2)
         queenside = Move(self.color.king_index, self.color.king_index - 2)
 
-        if board._index_threaten(self.color.king_index, self.color):
+        if board._is_square_under_attack(self.color.king_index, self.color):
             try:
                 legal_moves.remove(queenside)
             except KeyError:
@@ -302,12 +302,16 @@ class King(JumpingPiece):
             except KeyError:
                 pass
 
-        if board._index_threaten(self.color.king_index - 1, self.color):
+        if board._is_square_under_attack(
+            self.color.king_index - 1, self.color
+        ):
             try:
                 legal_moves.remove(queenside)
             except KeyError:
                 pass
-        if board._index_threaten(self.color.king_index + 1, self.color):
+        if board._is_square_under_attack(
+            self.color.king_index + 1, self.color
+        ):
             try:
                 legal_moves.remove(kingside)
             except KeyError:

@@ -35,7 +35,7 @@ class Board:
         self.en_passant = self._parse_en_passant(en_passant)
         self.fullmoves = self._parse_fullmoves(fullmoves)
         self.halfmoves = self._parse_halfmoves(halfmoves)
-        self._pieces = self._get_pieces()
+        self._pieces = self._get_sets_of_pieces_by_color()
         self.legal_moves = self._get_legal_moves_for_active_color()
         self.status = self._get_status()
 
@@ -191,7 +191,7 @@ class Board:
             ]
         )
 
-    def _get_pieces(self) -> dict[Color, set[p.Piece]]:
+    def _get_sets_of_pieces_by_color(self) -> dict[Color, set[p.Piece]]:
         white_pieces = set()
         black_pieces = set()
         for piece in self:
@@ -203,7 +203,7 @@ class Board:
         return {WHITE: white_pieces, BLACK: black_pieces}
 
     def _get_status(self) -> status.Status:
-        checked = self._is_in_check(self.active_color)
+        checked = self._is_king_in_check(self.active_color)
         has_moves = bool(self.legal_moves)
         if not has_moves:
             if checked:
@@ -218,21 +218,24 @@ class Board:
             return status.Draw()
         return status.Ongoing()
 
-    def _index_threaten(self, index: int, color: Color | None = None) -> bool:
+    def _is_square_under_attack(
+        self, index: int, color: Color | None = None
+    ) -> bool:
         enemy_types = {
             type(piece)
             for piece in self._pieces[WHITE if color == BLACK else BLACK]
         }
         return any(
-            Type.threatens_index(self, index, color) for Type in enemy_types
+            Type.is_square_attacked_by_piece_type(self, index, color)
+            for Type in enemy_types
         )
 
-    def _is_in_check(self, color: Color):
+    def _is_king_in_check(self, color: Color):
         kings = {
             king for king in self._pieces[color] if isinstance(king, p.King)
         }
         return any(
-            self._index_threaten(self._board.index(king), color)
+            self._is_square_under_attack(self._board.index(king), color)
             for king in kings
         )
 
