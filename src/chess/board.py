@@ -236,33 +236,46 @@ class Board:
             for king in kings
         )
 
-    def move(self, move: str) -> None:
-        move_ = Move.from_uci(move)
-        if move_ not in self.legal_moves:
+    def move_uci(self, move_uci: str) -> None:
+        move = Move.from_uci(move_uci)
+        self._move(move)
+
+    def _move(self, move: Move) -> None:
+        if move not in self.legal_moves:
             raise IllegalMoveError(f'move is not legal: {move}')
+
         self.halfmoves += 1
         self._total_halfmoves += 1
+
         if self.active_color == BLACK:
             self.fullmoves += 1
-        self._move(move_)
+
+        self._move_raw(move)
+
         self.active_color = self._COLORS[
             self._total_halfmoves % len(self._COLORS)
         ]
         self.legal_moves = self._get_legal_moves_for_active_color()
         self.status = self._get_status()
 
-    def _move(self, move: Move, bookkepp: bool = True) -> None:
+    def _move_raw(self, move: Move, bookkepp: bool = True) -> None:
         index = move.origin
         piece = self._board[index]
+
+        # not possible if called through Board._move
+        # but possible if called directly
+        # so you cannot desync the state by hitting NotAPieceError here
+        # after updating Board.halfmoves and Board._total_halfmoves
         if not isinstance(piece, p.Piece):
             raise NotAPieceError(f'not a piece: {index_to_square(index)}')
+
         piece.make_move(self, move, bookkepp)
 
     @contextlib.contextmanager
     def _with_move(self, move: Move):
         board = self._board
         self._board = board.copy()
-        self._move(move, False)
+        self._move_raw(move, False)
         yield
         self._board = board
 
