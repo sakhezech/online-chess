@@ -1,9 +1,10 @@
 import contextlib
 
 from . import pieces as p
+from . import status
 from .color import BLACK, WHITE, Color
 from .exceptions import FENError, IllegalMoveError, NotAPieceError
-from .util import CastleRights, Move, Status, index_to_square, square_to_index
+from .util import CastleRights, Move, index_to_square, square_to_index
 
 
 class Board:
@@ -201,21 +202,21 @@ class Board:
                     black_pieces.add(piece)
         return {WHITE: white_pieces, BLACK: black_pieces}
 
-    def _get_status(self) -> Status:
+    def _get_status(self) -> status.Status:
         checked = self._is_in_check(self.active_color)
         has_moves = bool(self.legal_moves)
         if not has_moves:
             if checked:
                 return (
-                    Status.WHITE_CHECKMATE
+                    status.Checkmate(WHITE)
                     if self.active_color == BLACK
-                    else Status.BLACK_CHECKMATE
+                    else status.Checkmate(BLACK)
                 )
             else:
-                return Status.STALEMATE
+                return status.Stalemate()
         if self.halfmoves >= 50:
-            return Status.DRAW
-        return Status.ONGOING
+            return status.Draw()
+        return status.Ongoing()
 
     def _index_threaten(self, index: int, color: Color | None = None) -> bool:
         enemy_types = {
