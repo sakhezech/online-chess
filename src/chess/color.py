@@ -3,6 +3,7 @@ import dataclasses
 
 @dataclasses.dataclass(unsafe_hash=True)
 class Color:
+    name: str
     forward_sign: int
     king_row: int
     promotion_row: int
@@ -13,6 +14,7 @@ class Color:
 
 
 WHITE = Color(
+    name='WHITE',
     forward_sign=-1,
     king_row=90,
     promotion_row=20,
@@ -22,6 +24,7 @@ WHITE = Color(
     queen_rook_index=91,
 )
 BLACK = Color(
+    name='BLACK',
     forward_sign=1,
     king_row=20,
     promotion_row=90,

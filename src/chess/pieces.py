@@ -21,8 +21,7 @@ class Piece(BoardEntity):
         self.color = color
 
     def __repr__(self) -> str:
-        color = 'White' if self.color == WHITE else 'Black'
-        return f"{self.__class__.__name__}('{color}')"
+        return f"{self.__class__.__name__}('{self.color.name}')"
 
     def get_pseudolegal_moves(self, board: 'Board', index: int) -> set[Move]:
         raise NotImplementedError
@@ -68,6 +67,7 @@ class Piece(BoardEntity):
 
     @property
     def icon(self) -> str:
+        # TODO: make color agnostic
         return self.char.upper() if self.color == WHITE else self.char
 
 
