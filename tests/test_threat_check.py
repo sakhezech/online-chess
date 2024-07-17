@@ -1,3 +1,5 @@
+from typing import Type
+
 import chess.pieces as p
 import pytest
 from chess.board import Board
@@ -23,12 +25,12 @@ test_data = {
         for Type, expected in type_and_expected.items()
     ],
 )
-def test_threat_check(data):
+def test_threat_check(data: tuple[str, Type[p.Piece], set[str]]):
     fen, Type, expected = data
     board = Board(fen)
     threats = {
         index_to_square(index)
         for index, _ in enumerate(board._board)
-        if Type.threatens_index(board, index)
+        if Type.is_square_attacked_by_piece_type(board, index)
     }
     assert threats == expected
