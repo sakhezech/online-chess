@@ -50,6 +50,11 @@ async def login(
         response.headers['HX-Redirect'] = '/'
 
 
+@htmx.get('/register')
+async def register_page(user: m.User | None = Depends(deps.get_current_user)):
+    return render('register', user)
+
+
 @htmx.post('/register')
 async def register(
     response: Response,

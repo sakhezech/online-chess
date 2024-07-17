@@ -17,7 +17,10 @@
   <div class="container">
     <nav>
       <a href="/">home</a>
-      {{^user}}<a href="/login">login</a>{{/user}}
+      {{^user}}
+      <a href="/register">signup</a>
+      <a href="/login">login</a>
+      {{/user}}
       {{#user}}<a hx-post="/logoff">logoff</a>{{/user}}
     </nav>
     {{$content}}

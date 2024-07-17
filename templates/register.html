@@ -3,13 +3,15 @@
 {{$content}}
 <div class='center'>
   <fieldset>
-    <legend>login</legend>
-    <form hx-post='/login'>
+    <legend>register</legend>
+    <form hx-post='/register'>
       <label for="username">Username</label>
       <input type="text" id='username' name='username' required>
       <label for="password">Password</label>
       <input type="password" id='password' name='password' required>
-      <button type="submit">Login</button>
+      <label for="repeat">Repeat</label>
+      <input type="password" id='repeat' name='repeat' required>
+      <button type="submit">Register</button>
     </form>
   </fieldset>
 </div>
