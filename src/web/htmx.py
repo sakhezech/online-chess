@@ -79,3 +79,20 @@ async def logoff(
     crud.delete_session_by_session_id(db, session)
     response.delete_cookie('session')
     response.headers['HX-Refresh'] = 'true'
+
+
+@htmx.post('/start-game')
+async def make_game(
+    response: Response,
+    db: Session = Depends(deps.get_db),
+):
+    chess = crud.create_chess(db)
+    response.headers['HX-Redirect'] = f'/game/{chess.chess_id}'
+
+
+@htmx.get('/game/{chess_id}')
+async def game_page(
+    chess_id: str,
+    user: m.User | None = Depends(deps.get_current_user),
+):
+    return render('game', user, dict(chess_id=chess_id))

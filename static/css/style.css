@@ -88,3 +88,23 @@ fieldset {
     }
   }
 }
+
+#board {
+  display: grid;
+  grid-template-columns: repeat(8, 1fr);
+  box-sizing: border-box;
+  margin-block: 1rem;
+  border: 4px solid var(--highlight);
+  & div {
+    aspect-ratio: 1;
+    /*color: var(--background);*/
+  }
+  & .white {
+    /*background-color: var(--red);*/
+    background-color: var(--highlight);
+  }
+  & .black {
+    /*background-color: var(--blue);*/
+    background-color: var(--background);
+  }
+}

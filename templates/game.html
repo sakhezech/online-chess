@@ -1,0 +1,13 @@
+{{< _template}}{{!></>}}
+{{$title}}Index{{/title}}
+{{$content}}
+<div hx-ext="ws" ws-connect="/api/v1/games/{{chess_id}}/ws?mode=htmx">
+  <div id="board">Loading the board...</div>
+  <form ws-send>
+    <input type="text" name="move">
+    <button type="submit">move</button>
+  </form>
+  <div id="notification"></div>
+</div>
+{{/content}}
+{{/ _template}}
