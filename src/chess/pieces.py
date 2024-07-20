@@ -293,29 +293,17 @@ class King(JumpingPiece):
         queenside = Move(self.color.king_index, self.color.king_index - 2)
 
         if board._is_square_under_attack(self.color.king_index, self.color):
-            try:
-                legal_moves.remove(queenside)
-            except KeyError:
-                pass
-            try:
-                legal_moves.remove(kingside)
-            except KeyError:
-                pass
+            legal_moves.discard(queenside)
+            legal_moves.discard(kingside)
 
         if board._is_square_under_attack(
             self.color.king_index - 1, self.color
         ):
-            try:
-                legal_moves.remove(queenside)
-            except KeyError:
-                pass
+            legal_moves.discard(queenside)
         if board._is_square_under_attack(
             self.color.king_index + 1, self.color
         ):
-            try:
-                legal_moves.remove(kingside)
-            except KeyError:
-                pass
+            legal_moves.discard(kingside)
         return legal_moves
 
     def get_pseudolegal_moves(self, board: 'Board', index: int) -> set[Move]:
